@@ -46,7 +46,7 @@ Shader ResourceManager::loadShaderFromFile(const std::string& filepath)
 {
 	enum ShaderType
 	{
-		NONE = -1, VERTEX = 0, FRAGMENT = 1
+		NONE = -1, VERTEX = 0, FRAGMENT = 1, GEOMETRY = 2
 	};
 	
 	std::string vertexCode;
@@ -54,7 +54,7 @@ Shader ResourceManager::loadShaderFromFile(const std::string& filepath)
 
 	std::ifstream shaderFile(filepath);
 	std::string line;
-	std::stringstream shaderStream[2];
+	std::stringstream shaderStream[3];
 	ShaderType type = ShaderType::NONE;
 
 	try
@@ -68,6 +68,8 @@ Shader ResourceManager::loadShaderFromFile(const std::string& filepath)
 					type = ShaderType::VERTEX;
 				else if (line.find("fragment") != std::string::npos)
 					type = ShaderType::FRAGMENT;
+				else if (line.find("geometry") != std::string::npos)
+					type = ShaderType::GEOMETRY;
 			}
 			else
 			{
@@ -81,7 +83,7 @@ Shader ResourceManager::loadShaderFromFile(const std::string& filepath)
 	}
 
 	Shader shader;
-	shader.Compile(shaderStream[0].str(), shaderStream[1].str());
+	shader.Compile(shaderStream[0].str(), shaderStream[1].str(), shaderStream[2].str());
 	return shader;
 	
 	/*std::string vertexCode;
