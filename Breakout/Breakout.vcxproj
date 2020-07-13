@@ -177,6 +177,11 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture2D.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="res\shaders\Basic.fs" />
+    <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\Basic.vs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

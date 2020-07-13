@@ -8,9 +8,11 @@
 std::map<std::string, Shader> ResourceManager::Shaders;
 std::map<std::string, Texture2D> ResourceManager::Textures;
 
-Shader ResourceManager::LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name)
+//Shader ResourceManager::LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name)
+Shader ResourceManager::LoadShader(const std::string& filepath, std::string name)
 {
-	Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
+	//Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
+	Shaders[name] = loadShaderFromFile(filepath);
 	return Shaders[name];
 }
 
@@ -39,9 +41,50 @@ void ResourceManager::Clear()
 		glDeleteTextures(1, &iter.second.ID);
 }
 
-Shader ResourceManager::loadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile)
+//Shader ResourceManager::loadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile)
+Shader ResourceManager::loadShaderFromFile(const std::string& filepath)
 {
+	enum ShaderType
+	{
+		NONE = -1, VERTEX = 0, FRAGMENT = 1
+	};
+	
 	std::string vertexCode;
+	std::string fragmentCode;
+
+	std::ifstream shaderFile(filepath);
+	std::string line;
+	std::stringstream shaderStream[2];
+	ShaderType type = ShaderType::NONE;
+
+	try
+	{
+
+		while (getline(shaderFile, line))
+		{
+			if (line.find("#shader") != std::string::npos)
+			{
+				if (line.find("vertex") != std::string::npos)
+					type = ShaderType::VERTEX;
+				else if (line.find("fragment") != std::string::npos)
+					type = ShaderType::FRAGMENT;
+			}
+			else
+			{
+				shaderStream[(int)type] << line << '\n';
+			}
+		}
+	}
+	catch (std::exception e)
+	{
+		std::cout << "ERROR::SHADER: Failed to read shader files!" << std::endl;
+	}
+
+	Shader shader;
+	shader.Compile(shaderStream[0].str(), shaderStream[1].str());
+	return shader;
+	
+	/*std::string vertexCode;
 	std::string fragmentCode;
 	std::string geometryCode;
 
@@ -84,7 +127,7 @@ Shader ResourceManager::loadShaderFromFile(const char* vShaderFile, const char* 
 	// create shader object from source
 	Shader shader;
 	shader.Compile(vShaderCode, fShaderCode, gShaderFile != nullptr ? gShaderCode : nullptr);
-	return shader;
+	return shader;*/
 }
 
 Texture2D ResourceManager::loadTextureFromFile(const char* file, bool alpha)

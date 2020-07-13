@@ -18,11 +18,12 @@ private:
 	std::unordered_map<std::string, int> m_UniformLocationCache;
 
 public:
-	static unsigned int ID;
+	unsigned int ID;
 	Shader() {}
 	Shader &Use();
 	
-	void Compile(const char* vertexSource, const char* fragmentSource, const char* geometrySource = nullptr);
+	//void Compile(const char* vertexSource, const char* fragmentSource, const char* geometrySource = nullptr);
+	void Compile(const std::string& vertexSource, const std::string& fragmentSource);
 
 	void SetUniformMatrix4fv(const std::string& name, const glm::mat4& mat);
 	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
