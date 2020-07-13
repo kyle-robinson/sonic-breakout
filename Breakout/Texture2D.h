@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef TEXTURE_H
+#define TEXTURE_H
+
 #include <GLAD/glad.h>
 
 class Texture2D
@@ -19,3 +23,5 @@ public:
 	void Generate(unsigned int width, unsigned int height, unsigned char* data);
 	void Bind() const;
 };
+
+#endif

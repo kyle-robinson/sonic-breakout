@@ -160,6 +160,7 @@
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Texture2D.cpp" />
   </ItemGroup>
@@ -173,14 +174,12 @@
     <ClInclude Include="..\External\IMGUI\stb_truetype.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="SpriteRenderer.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture2D.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\shaders\Basic.fs" />
-    <None Include="res\shaders\Basic.shader" />
-    <None Include="res\shaders\Basic.vs" />
+    <None Include="res\shaders\Sprite.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

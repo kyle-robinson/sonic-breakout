@@ -57,6 +57,9 @@
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SpriteRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -83,9 +86,6 @@
     <ClInclude Include="..\External\IMGUI\stb_truetype.h">
       <Filter>Resource Files\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -95,15 +95,12 @@
     <ClInclude Include="ResourceManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SpriteRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\shaders\Basic.fs">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="res\shaders\Basic.vs">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="res\shaders\Basic.shader">
+    <None Include="res\shaders\Sprite.shader">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>

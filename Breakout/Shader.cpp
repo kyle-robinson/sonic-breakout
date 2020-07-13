@@ -4,13 +4,12 @@
 #include <fstream>
 #include <sstream>
 
-Shader& Shader::Use()
+Shader& Shader::Bind()
 {
 	glUseProgram(this->ID);
 	return *this;
 }
 
-//void Shader::Compile(const char* vertexSource, const char* fragmentSource, const char* geometrySource)
 void Shader::Compile(const std::string& vertexSource, const std::string& fragmentSource, const std::string& geometrySource)
 {
 	unsigned int sVertex, sFragment, sGeometry;
@@ -52,43 +51,6 @@ void Shader::Compile(const std::string& vertexSource, const std::string& fragmen
 	glDeleteShader(sFragment);
 	if (geometrySource != "")
 		glDeleteShader(sGeometry);
-	
-	/*unsigned int sVertex, sFragment, sGeometry;
-
-	// vertex
-	sVertex = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(sVertex, 1, &vertexSource, NULL);
-	glCompileShader(sVertex);
-	CheckCompileErrors(sVertex, "VERTEX");
-
-	// fragment
-	sFragment = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(sFragment, 1, &fragmentSource, NULL);
-	glCompileShader(sFragment);
-	CheckCompileErrors(sFragment, "FRAGMENT");
-
-	// geometry
-	if (geometrySource != nullptr)
-	{
-		sGeometry = glCreateShader(GL_GEOMETRY_SHADER);
-		glShaderSource(sGeometry, 1, &geometrySource, NULL);
-		glCompileShader(sGeometry);
-		CheckCompileErrors(sGeometry, "GEOMETRY");
-	}
-
-	this->ID = glCreateProgram();
-	glAttachShader(this->ID, sVertex);
-	glAttachShader(this->ID, sFragment);
-	if (geometrySource != nullptr)
-		glAttachShader(this->ID, sGeometry);
-	glLinkProgram(this->ID);
-	CheckCompileErrors(this->ID, "PROGRAM");
-
-	// delete shaders
-	glDeleteShader(sVertex);
-	glDeleteShader(sFragment);
-	if (geometrySource != nullptr)
-		glDeleteShader(sGeometry);*/
 }
 
 void Shader::SetUniformMatrix4fv(const std::string& name, const glm::mat4& mat)
