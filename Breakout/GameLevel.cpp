@@ -61,7 +61,8 @@ void GameLevel::Init(std::vector<std::vector<unsigned int>> tileData, unsigned i
 			{
 				glm::vec2 pos(unit_width * x, unit_height * y);
 				glm::vec2 size(unit_width, unit_height);
-				GameObject obj(pos, size, ResourceManager::GetTexture("obsidian"), glm::vec3(1.0f, 1.0f, 1.0f));
+				GameObject obj(pos, size, ResourceManager::GetTexture("block_solid"), glm::vec3(1.0f, 1.0f, 1.0f));
+				//GameObject obj(pos, size, ResourceManager::GetTexture("obsidian"), glm::vec3(1.0f, 1.0f, 1.0f));
 				obj.IsSolid = true;
 				this->Bricks.push_back(obj);
 				// color : glm::vec3(0.8f, 0.8f, 0.7f)
@@ -69,16 +70,16 @@ void GameLevel::Init(std::vector<std::vector<unsigned int>> tileData, unsigned i
 			else if (tileData[y][x] > 1) // not solid
 			{
 				glm::vec3 color = glm::vec3(1.0f);
-				/*if (tileData[y][x] == 2)
+				if (tileData[y][x] == 2)
 					color = glm::vec3(0.2f, 0.6f, 1.0f);
 				else if (tileData[y][x] == 3)
 					color = glm::vec3(0.0f, 0.7f, 0.0f);
 				else if (tileData[y][x] == 4)
 					color = glm::vec3(0.8f, 0.8f, 0.4f);
 				else if (tileData[y][x] == 5)
-					color = glm::vec3(1.0f, 0.5f, 0.0f);*/
+					color = glm::vec3(1.0f, 0.5f, 0.0f);
 
-				Texture2D blockTexture;
+				/*Texture2D blockTexture;
 				if (tileData[y][x] == 2)
 					blockTexture = ResourceManager::GetTexture("dirt");
 				else if (tileData[y][x] == 3)
@@ -86,11 +87,12 @@ void GameLevel::Init(std::vector<std::vector<unsigned int>> tileData, unsigned i
 				else if (tileData[y][x] == 4)
 					blockTexture = ResourceManager::GetTexture("silver");
 				else if (tileData[y][x] == 5)
-					blockTexture = ResourceManager::GetTexture("gold");
+					blockTexture = ResourceManager::GetTexture("gold");*/
 
 				glm::vec2 pos(unit_width * x, unit_height * y);
 				glm::vec2 size(unit_width, unit_height);
-				this->Bricks.push_back(GameObject(pos, size, blockTexture, color));
+				this->Bricks.push_back(GameObject(pos, size, ResourceManager::GetTexture("block"), color));
+				//this->Bricks.push_back(GameObject(pos, size, blockTexture, color));
 			}
 		}
 	}
