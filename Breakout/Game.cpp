@@ -30,15 +30,17 @@ void Game::Init()
 	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 
 	// Textures
+		// Levels
 	/*ResourceManager::LoadTexture("res/textures/backgrounds/overworld/Overworld2.png", true, "overworld");
 	ResourceManager::LoadTexture("res/textures/backgrounds/caverns/Cavern3.png", true, "cavern");
 	ResourceManager::LoadTexture("res/textures/backgrounds/crimson/Crimson2.png", true, "crimson");
 	ResourceManager::LoadTexture("res/textures/backgrounds/hell/Hell1.png", true, "hell");
-	
+		// Sprites
 	ResourceManager::LoadTexture("res/textures/sprites/doomguy.png", true, "slayer");
-	ResourceManager::LoadTexture("res/textures/sprites/wood_platform.png", true, "platform");
+	ResourceManager::LoadTexture("res/textures/sprites/steve.png", false, "steve");
+	ResourceManager::LoadTexture("res/textures/sprites/wood_platform.png", true, "paddle");
 	ResourceManager::LoadTexture("res/textures/sprites/beach_ball.png", true, "ball");
-	
+		// Blocks
 	ResourceManager::LoadTexture("res/textures/blocks/soil/dirt.png", true, "dirt");
 	ResourceManager::LoadTexture("res/textures/blocks/soil/sand.png", true, "stone");
 	ResourceManager::LoadTexture("res/textures/blocks/brick/silver.png", true, "silver");
@@ -96,9 +98,7 @@ void Game::Render()
 	{
 		Texture2D backgroundTexture = ResourceManager::GetTexture("background");
 		Renderer->DrawSprite(backgroundTexture, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
-		
-		//Texture2D paddleTex = ResourceManager::GetTexture("paddle");
-		//Renderer->DrawSprite(paddleTex, glm::vec2(this->Width * 0.4f, this->Height - 40.0f), glm::vec2(200.0f, 40.0f), 0.0f);
+
 		Player->Draw(*Renderer);
 
 		Texture2D faceTex = ResourceManager::GetTexture("face");
