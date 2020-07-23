@@ -88,8 +88,18 @@ void Game::ProcessInput(float dt)
 			if (Player->Position.x <= this->Width - Player->Size.x)
 				Player->Position.x += velocity;
 		}
+		
 		if (this->Keys[GLFW_KEY_SPACE])
 			Ball->Stuck = false;
+
+		if (this->Keys[GLFW_KEY_1])
+			this->Level = 0;
+		if (this->Keys[GLFW_KEY_2])
+			this->Level = 1;
+		if (this->Keys[GLFW_KEY_3])
+			this->Level = 2;
+		if (this->Keys[GLFW_KEY_4])
+			this->Level = 3;
 	}
 }
 
