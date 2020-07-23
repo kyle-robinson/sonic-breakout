@@ -1,9 +1,12 @@
 #include "Game.h"
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
+#include "BallObject.h"
+#include <iostream>
 
 SpriteRenderer* Renderer;
 GameObject* Player;
+BallObject* Ball;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
@@ -67,6 +70,8 @@ void Game::Init()
 	// Game Objects
 	glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
 	Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
+	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
 }
 
 void Game::ProcessInput(float dt)
@@ -84,12 +89,19 @@ void Game::ProcessInput(float dt)
 			if (Player->Position.x <= this->Width - Player->Size.x)
 				Player->Position.x += velocity;
 		}
+		if (this->Keys[GLFW_KEY_SPACE])
+			Ball->Stuck = false;
+		if (this->Keys[GLFW_KEY_R])
+			Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f), INITIAL_BALL_VELOCITY);
 	}
 }
 
 void Game::Update(float dt)
 {
-
+	if (Ball->Stuck)
+		Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+	else
+		Ball->Move(dt, this->Width);
 }
 
 void Game::Render()
@@ -98,13 +110,13 @@ void Game::Render()
 	{
 		Texture2D backgroundTexture = ResourceManager::GetTexture("background");
 		Renderer->DrawSprite(backgroundTexture, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
-
+				
+		this->Levels[this->Level].Draw(*Renderer);
+		
 		Player->Draw(*Renderer);
 
 		Texture2D faceTex = ResourceManager::GetTexture("face");
-		Renderer->DrawSprite(faceTex, glm::vec2(this->Width * 0.4f, this->Height * 0.6f), glm::vec2(50.0f, 50.0f), 0.0f);
-		
-		this->Levels[this->Level].Draw(*Renderer);
+		Ball->Draw(*Renderer);
 		
 		//Texture2D myTexture;
 		//myTexture = ResourceManager::GetTexture("slayer");

@@ -156,6 +156,7 @@
     <ClCompile Include="..\External\IMGUI\imgui_demo.cpp" />
     <ClCompile Include="..\External\IMGUI\imgui_draw.cpp" />
     <ClCompile Include="..\External\IMGUI\imgui_impl_glfw_gl3.cpp" />
+    <ClCompile Include="BallObject.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameLevel.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="..\External\IMGUI\stb_rect_pack.h" />
     <ClInclude Include="..\External\IMGUI\stb_textedit.h" />
     <ClInclude Include="..\External\IMGUI\stb_truetype.h" />
+    <ClInclude Include="BallObject.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameLevel.h" />
     <ClInclude Include="GameObject.h" />
