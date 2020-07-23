@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include "GameLevel.h"
+#include "BallObject.h"
 
 enum GameState
 {
@@ -36,6 +37,10 @@ public:
 	void ProcessInput(float dt);
 	void Update(float dt);
 	void Render();
+
+	bool CheckCollision(GameObject &one, GameObject &two);
+	bool CheckCollision(BallObject& one, GameObject& two);
+	void DoCollisions();
 };
 
 #endif

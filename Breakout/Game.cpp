@@ -1,8 +1,6 @@
 #include "Game.h"
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
-#include "BallObject.h"
-#include <iostream>
 
 SpriteRenderer* Renderer;
 GameObject* Player;
@@ -102,6 +100,7 @@ void Game::Update(float dt)
 		Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	else
 		Ball->Move(dt, this->Width);
+	this->DoCollisions();
 }
 
 void Game::Render()
@@ -123,4 +122,46 @@ void Game::Render()
 		//Renderer->DrawSprite(myTexture, glm::vec2(200.0f, 200.0f), glm::vec2(300.0f, 400.0f), 45.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 	}
 	
+}
+
+bool Game::CheckCollision(GameObject &one, GameObject &two) // AABB
+{
+	// x-axis
+	bool collisionX = one.Position.x + one.Size.x >= two.Position.x && two.Position.x + two.Size.x >= one.Position.x;
+	// y-axis
+	bool collisionY = one.Position.y + one.Size.y >= two.Position.y && two.Position.y + two.Size.y >= one.Position.y;
+
+	return collisionX && collisionY;
+}
+
+bool Game::CheckCollision(BallObject& one, GameObject& two) // AABB - Circle Collision
+{
+	glm::vec2 center(one.Position + one.Radius); // circle center point
+	
+	glm::vec2 aabb_half_extents(two.Size.x / 2.0f, two.Size.y / 2.0f);
+	glm::vec2 aabb_center(two.Position.x + aabb_half_extents.x, two.Position.y + aabb_half_extents.y);
+
+	// get difference vector between both centers
+	glm::vec2 difference = center - aabb_center;
+	glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
+
+	glm::vec2 closest = aabb_center + clamped; // add clamped value to aabb_center to get value of box closest to circle
+	difference = closest - center; // get vector between center circle and closest point aabb
+
+	return glm::length(difference) < one.Radius; // check length <= radius
+}
+
+void Game::DoCollisions()
+{
+	for (GameObject &box : this->Levels[this->Level].Bricks)
+	{
+		if (!box.Destroyed)
+		{
+			if (CheckCollision(*Ball, box))
+			{
+				if (!box.IsSolid)
+					box.Destroyed = true;
+			}
+		}
+	}
 }
