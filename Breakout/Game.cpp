@@ -12,6 +12,7 @@ PostProcessor* Effects;
 
 float ShakeTime = 0.0f;
 bool paused = false;
+bool pauseKeyPressed = false;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
@@ -99,10 +100,15 @@ void Game::Init()
 
 void Game::ProcessInput(float dt)
 {
-	if (this->Keys[GLFW_KEY_P])
-		paused = true;
-	if (this->Keys[GLFW_KEY_O])
-		paused = false;
+	if (this->Keys[GLFW_KEY_P] == GLFW_PRESS && !pauseKeyPressed)
+	{
+		paused = !paused;
+		pauseKeyPressed = true;
+	}
+	if (this->Keys[GLFW_KEY_P] == GLFW_RELEASE)
+	{
+		pauseKeyPressed = false;
+	}
 
 	if (this->State == GAME_ACTIVE && !paused)
 	{
