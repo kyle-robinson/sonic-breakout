@@ -161,6 +161,7 @@
     <ClCompile Include="GameLevel.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="ParticleGenerator.cpp" />
+    <ClCompile Include="PostProcessor.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="GameLevel.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="ParticleGenerator.h" />
+    <ClInclude Include="PostProcessor.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SpriteRenderer.h" />
@@ -189,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Particle.shader" />
+    <None Include="res\shaders\PostProcessing.shader" />
     <None Include="res\shaders\Sprite.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

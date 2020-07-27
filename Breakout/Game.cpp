@@ -2,11 +2,15 @@
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
 #include "ParticleGenerator.h"
+#include "PostProcessor.h"
 
 SpriteRenderer* Renderer;
 GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
+PostProcessor* Effects;
+
+float ShakeTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
@@ -19,6 +23,7 @@ Game::~Game()
 	delete Player;
 	delete Ball;
 	delete Particles;
+	delete Effects;
 }
 
 void Game::Init()
@@ -26,6 +31,7 @@ void Game::Init()
 	// Shaders
 	ResourceManager::LoadShader("res/shaders/Sprite.shader", "sprite");
 	ResourceManager::LoadShader("res/shaders/Particle.shader", "particle");
+	ResourceManager::LoadShader("res/shaders/PostProcessing.shader", "post_processor");
 
 	// Shader Configuration
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), static_cast<float>(this->Height), 0.0f, -1.0f, 0.0f);
@@ -63,6 +69,7 @@ void Game::Init()
 	// Render-Specific Controls
 	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
+	Effects = new PostProcessor(ResourceManager::GetShader("post_processor"), this->Width, this->Height);
 
 	// Levels
 	GameLevel one; one.Load("res/levels/one.lvl", this->Width, this->Height / 2);
@@ -119,17 +126,21 @@ void Game::Update(float dt)
 
 	if (Ball->Stuck)
 		Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
-	else
+
+	Ball->Move(dt, this->Width);
+	this->DoCollisions();
+
+	if (ShakeTime > 0.0f)
 	{
-		Ball->Move(dt, this->Width);
-		this->DoCollisions();
+		ShakeTime -= dt;
+		if (ShakeTime <= 0.0f)
+			Effects->Shake = false;
+	}
 
-
-		if (Ball->Position.y >= this->Height)
-		{
-			this->ResetLevel();
-			this->ResetPlayer();
-		}
+	if (Ball->Position.y >= this->Height)
+	{
+		this->ResetLevel();
+		this->ResetPlayer();
 	}
 }
 
@@ -137,6 +148,8 @@ void Game::Render()
 {
 	if (this->State == GAME_ACTIVE)
 	{
+		Effects->BeginRender();
+		
 		Texture2D backgroundTexture = ResourceManager::GetTexture("background");
 		Renderer->DrawSprite(backgroundTexture, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
 				
@@ -151,6 +164,9 @@ void Game::Render()
 		//Texture2D myTexture;
 		//myTexture = ResourceManager::GetTexture("slayer");
 		//Renderer->DrawSprite(myTexture, glm::vec2(200.0f, 200.0f), glm::vec2(300.0f, 400.0f), 45.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+		Effects->EndRender();
+		Effects->Render(glfwGetTime());
 	}
 	
 }
@@ -196,6 +212,12 @@ void Game::DoCollisions()
 			{
 				if (!box.IsSolid)
 					box.Destroyed = true;
+				else
+				{
+					ShakeTime = 0.05f;
+					Effects->Shake = true;
+				}
+
 				// collision resolution
 				Direction dir = std::get<1>(collision);
 				glm::vec2 diff_vector = std::get<2>(collision);
