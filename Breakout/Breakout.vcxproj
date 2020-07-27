@@ -183,6 +183,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="ParticleGenerator.h" />
     <ClInclude Include="PostProcessor.h" />
+    <ClInclude Include="PowerUp.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SpriteRenderer.h" />

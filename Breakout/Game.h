@@ -8,7 +8,9 @@
 
 #include "GameLevel.h"
 #include "BallObject.h"
+#include "PowerUp.h"
 #include <tuple>
+#include <algorithm>
 
 enum GameState
 {
@@ -40,6 +42,7 @@ public:
 	bool Keys[1024];
 	unsigned int Width, Height;
 	std::vector<GameLevel> Levels;
+	std::vector<PowerUp> PowerUps;
 	unsigned int Level;
 
 	Game(unsigned int width, unsigned int height);
@@ -56,6 +59,12 @@ public:
 
 	void ResetLevel();
 	void ResetPlayer();
+
+	bool ShouldSpawn(unsigned int chance);
+	void SpawnPowerUps(GameObject &block);
+	void ActivatePowerUp(PowerUp& powerUp);
+	void UpdatePowerUps(float dt);
+	bool IsOtherPowerUpActive(std::vector<PowerUp> &powerUps, std::string type);
 };
 
 #endif
