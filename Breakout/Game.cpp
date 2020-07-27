@@ -149,6 +149,29 @@ void Game::Update(float dt)
 		this->ResetLevel();
 		this->ResetPlayer();
 	}
+
+	// Load next level
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		if (this->Levels[i].IsCompleted())
+		{
+			switch (i)
+			{
+			case 0:
+				this->Levels[1].Load("res/levels/one.lvl", this->Width, this->Height / 2);
+				break;
+			case 1:
+				this->Levels[2].Load("res/levels/two.lvl", this->Width, this->Height / 2);
+				break;
+			case 2:
+				this->Levels[3].Load("res/levels/three.lvl", this->Width, this->Height / 2);
+				break;
+			case 3:
+				this->Levels[0].Load("res/levels/four.lvl", this->Width, this->Height / 2);
+				break;
+			}
+		}
+	}
 }
 
 void Game::Render()
@@ -419,7 +442,7 @@ void Game::UpdatePowerUps(float dt)
 					if (!IsOtherPowerUpActive(this->PowerUps, "pass-through"))
 					{
 						Ball->PassThrough = false;
-						Player->Color = glm::vec3(1.0f);
+						Ball->Color = glm::vec3(1.0f);
 					}
 				}
 				else if (powerUp.Type == "confuse")
