@@ -1,10 +1,12 @@
 #include "Game.h"
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
+#include "ParticleGenerator.h"
 
 SpriteRenderer* Renderer;
 GameObject* Player;
 BallObject* Ball;
+ParticleGenerator* Particles;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
@@ -16,20 +18,22 @@ Game::~Game()
 	delete Renderer;
 	delete Player;
 	delete Ball;
+	delete Particles;
 }
 
 void Game::Init()
 {
 	// Shaders
 	ResourceManager::LoadShader("res/shaders/Sprite.shader", "sprite");
+	ResourceManager::LoadShader("res/shaders/Particle.shader", "particle");
 
 	// Shader Configuration
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), static_cast<float>(this->Height), 0.0f, -1.0f, 0.0f);
 	ResourceManager::GetShader("sprite").Bind().SetUniform1i("image", 0);
 	ResourceManager::GetShader("sprite").SetUniformMatrix4fv("projection", projection);
 
-	// Render-Specific Controls
-	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
+	ResourceManager::GetShader("particle").Bind().SetUniform1i("sprite", 0);
+	ResourceManager::GetShader("particle").SetUniformMatrix4fv("projection", projection);
 
 	// Textures
 		// Levels
@@ -54,6 +58,11 @@ void Game::Init()
 	ResourceManager::LoadTexture("res/textures/misc/block.png", false, "block");
 	ResourceManager::LoadTexture("res/textures/misc/block_solid.png", false, "block_solid");
 	ResourceManager::LoadTexture("res/textures/misc/paddle.png", true, "paddle");
+	ResourceManager::LoadTexture("res/textures/misc/particle.png", true, "particle");
+
+	// Render-Specific Controls
+	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
+	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
 
 	// Levels
 	GameLevel one; one.Load("res/levels/one.lvl", this->Width, this->Height / 2);
@@ -69,6 +78,7 @@ void Game::Init()
 	// Game Objects
 	glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
 	Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
+
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
 }
@@ -105,12 +115,16 @@ void Game::ProcessInput(float dt)
 
 void Game::Update(float dt)
 {
+	Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
+
 	if (Ball->Stuck)
 		Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	else
 	{
 		Ball->Move(dt, this->Width);
 		this->DoCollisions();
+
+
 		if (Ball->Position.y >= this->Height)
 		{
 			this->ResetLevel();
@@ -129,6 +143,8 @@ void Game::Render()
 		this->Levels[this->Level].Draw(*Renderer);
 		
 		Player->Draw(*Renderer);
+
+		Particles->Draw();
 
 		Ball->Draw(*Renderer);
 		
