@@ -11,6 +11,7 @@ ParticleGenerator* Particles;
 PostProcessor* Effects;
 
 float ShakeTime = 0.0f;
+bool paused = false;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
@@ -98,7 +99,12 @@ void Game::Init()
 
 void Game::ProcessInput(float dt)
 {
-	if (this->State == GAME_ACTIVE)
+	if (this->Keys[GLFW_KEY_P])
+		paused = true;
+	if (this->Keys[GLFW_KEY_O])
+		paused = false;
+
+	if (this->State == GAME_ACTIVE && !paused)
 	{
 		float velocity = PLAYER_VELOCITY * dt;
 		if (this->Keys[GLFW_KEY_A])
@@ -127,27 +133,30 @@ void Game::ProcessInput(float dt)
 }
 
 void Game::Update(float dt)
-{
-	Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
-
-	if (Ball->Stuck)
-		Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
-
-	Ball->Move(dt, this->Width);
-	this->DoCollisions();
-	this->UpdatePowerUps(dt);
-
-	if (ShakeTime > 0.0f)
+{	
+	if (this->State == GAME_ACTIVE && !paused)
 	{
-		ShakeTime -= dt;
-		if (ShakeTime <= 0.0f)
-			Effects->Shake = false;
-	}
+		Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
 
-	if (Ball->Position.y >= this->Height)
-	{
-		this->ResetLevel();
-		this->ResetPlayer();
+		if (Ball->Stuck)
+			Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+
+		Ball->Move(dt, this->Width);
+		this->DoCollisions();
+		this->UpdatePowerUps(dt);
+
+		if (ShakeTime > 0.0f)
+		{
+			ShakeTime -= dt;
+			if (ShakeTime <= 0.0f)
+				Effects->Shake = false;
+		}
+
+		if (Ball->Position.y >= this->Height)
+		{
+			this->ResetLevel();
+			this->ResetPlayer();
+		}
 	}
 
 	// Load next level
