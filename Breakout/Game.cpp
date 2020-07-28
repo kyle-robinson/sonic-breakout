@@ -181,6 +181,16 @@ void Game::ProcessInput(float dt)
 		if (this->Keys[GLFW_KEY_4])
 			this->Level = 3;*/
 	}
+
+	if (this->State == GAME_WIN)
+	{
+		if (this->Keys[GLFW_KEY_ENTER])
+		{
+			this->KeysProcessed[GLFW_KEY_ENTER] = true;
+			Effects->Chaos = false;
+			this->State = GAME_MENU;
+		}
+	}
 }
 
 void Game::Update(float dt)
@@ -214,8 +224,16 @@ void Game::Update(float dt)
 		}
 	}
 
+	if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
+	{
+		this->ResetLevel();
+		this->ResetPlayer();
+		Effects->Chaos = true;
+		this->State = GAME_WIN;
+	}
+
 	// Load next level
-	for (unsigned int i = 0; i < 4; i++)
+	/*for (unsigned int i = 0; i < 4; i++)
 	{
 		if (this->Levels[i].IsCompleted())
 		{
@@ -235,12 +253,12 @@ void Game::Update(float dt)
 				break;
 			}
 		}
-	}
+	}*/
 }
 
 void Game::Render()
 {
-	if (this->State == GAME_ACTIVE || this->State == GAME_MENU)
+	if (this->State == GAME_ACTIVE || this->State == GAME_MENU || this->State == GAME_WIN)
 	{
 		Effects->BeginRender();
 		
@@ -274,6 +292,12 @@ void Game::Render()
 	{
 		Text->RenderText("Press ENTER to start!", 250.0f, Height / 2, 1.0f);
 		Text->RenderText("Press W or S to select level.", 245.0f, Height / 2 + 20.0f, 0.75f);
+	}
+
+	if (this->State == GAME_WIN)
+	{
+		Text->RenderText("You WON!!!", 320.0f, Height / 2 - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		Text->RenderText("Press ENTER to retry or ESC to quit.", 130.0f, Height / 2, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
 	}
 }
 

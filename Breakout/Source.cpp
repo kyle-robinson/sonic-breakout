@@ -24,7 +24,7 @@ int main()
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
 
-	Breakout.State = GAME_MENU;
+	Breakout.State = GAME_WIN;
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window))
