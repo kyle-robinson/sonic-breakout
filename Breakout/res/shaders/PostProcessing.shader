@@ -7,6 +7,7 @@ out vec2 TexCoords;
 uniform bool chaos;
 uniform bool confuse;
 uniform bool shake;
+uniform bool circle;
 uniform float time;
 
 void main()
@@ -24,6 +25,12 @@ void main()
 	{
 		TexCoords = vec2(1.0 - texture.x, 1.0 - texture.y);
 	}
+	else if (circle)
+	{
+		float strength = 0.05;
+		vec2 pos = vec2(texture.x + sin(time) * strength / 2, texture.y + cos(time) * strength / 2);
+		TexCoords = pos;
+	}
 	else
 	{
 		TexCoords = texture;
@@ -35,6 +42,7 @@ void main()
 		gl_Position.x += cos(time * 10) * strength;
 		gl_Position.y += cos(time * 15) * strength;
 	}
+
 }
 
 #shader fragment

@@ -80,6 +80,7 @@ void PostProcessor::Render(float time)
 	this->PostProcessingShader.SetUniform1i("chaos", this->Chaos);
 	this->PostProcessingShader.SetUniform1i("confuse", this->Confuse);
 	this->PostProcessingShader.SetUniform1i("shake", this->Shake);
+	this->PostProcessingShader.SetUniform1i("circle", this->Circle);
 
 	// Render textured quad
 	glActiveTexture(GL_TEXTURE0);

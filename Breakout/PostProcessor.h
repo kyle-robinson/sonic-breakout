@@ -17,7 +17,7 @@ public:
 	Texture2D Texture;
 	unsigned int Width, Height;
 
-	bool Chaos, Confuse, Shake;
+	bool Chaos, Confuse, Shake, Circle;
 
 	PostProcessor(Shader shader, unsigned int width, unsigned int height);
 	void BeginRender();
