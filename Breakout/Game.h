@@ -10,7 +10,6 @@
 #include "BallObject.h"
 #include "PowerUp.h"
 #include <tuple>
-#include <algorithm>
 
 enum GameState
 {

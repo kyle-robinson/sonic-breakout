@@ -4,11 +4,15 @@
 #include "ParticleGenerator.h"
 #include "PostProcessor.h"
 
+#include <algorithm>
+#include <irrKlang/irrKlang.h>
+
 SpriteRenderer* Renderer;
 GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
 PostProcessor* Effects;
+irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
 
 float ShakeTime = 0.0f;
 bool paused = false;
@@ -26,6 +30,7 @@ Game::~Game()
 	delete Ball;
 	delete Particles;
 	delete Effects;
+	SoundEngine->drop();
 }
 
 void Game::Init()
@@ -96,6 +101,9 @@ void Game::Init()
 
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
+
+	//audio
+	SoundEngine->play2D("res/audio/breakout.mp3", true);
 }
 
 void Game::ProcessInput(float dt)
@@ -263,11 +271,13 @@ void Game::DoCollisions()
 				{
 					box.Destroyed = true;
 					this->SpawnPowerUps(box);
+					SoundEngine->play2D("res/audio/bleep.mp3", false);
 				}
 				else
 				{
 					ShakeTime = 0.05f;
 					Effects->Shake = true;
+					SoundEngine->play2D("res/audio/solid.wav", false);
 				}
 
 				// collision resolution
@@ -315,6 +325,7 @@ void Game::DoCollisions()
 		Ball->Velocity.y = -1.0f * abs(Ball->Velocity.y);
 		Ball->Velocity = glm::normalize(Ball->Velocity) * glm::length(oldVelocity);
 		Ball->Stuck = Ball->Sticky;
+		SoundEngine->play2D("res/audio/bleep.wav", false);
 	}
 
 	for (PowerUp &powerUp : this->PowerUps)
@@ -328,6 +339,7 @@ void Game::DoCollisions()
 				ActivatePowerUp(powerUp);
 				powerUp.Destroyed = true;
 				powerUp.Activated = true;
+				SoundEngine->play2D("res/audio/powerup.wav", false);
 			}
 		}
 	}
