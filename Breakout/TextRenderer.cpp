@@ -10,7 +10,7 @@
 TextRenderer::TextRenderer(unsigned int width, unsigned int height)
 {
 	this->TextShader = ResourceManager::LoadShader("res/shaders/Text.shader", "text");
-	this->TextShader.SetUniformMatrix4fv("projection", glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f));
+	this->TextShader.Bind().SetUniformMatrix4fv("projection", glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f));
 	this->TextShader.SetUniform1i("text", 0);
 
 	glGenVertexArrays(1, &this->VAO);
@@ -71,11 +71,12 @@ void TextRenderer::Load(std::string font, unsigned int fontSize)
 			texture, glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
 			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top), face->glyph->advance.x
 		};
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		FT_Done_Face(face);
-		FT_Done_FreeType(ft);
+		Characters.insert(std::pair<char, Character>(c, character));
 	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
 }
 
 void TextRenderer::RenderText(std::string text, float x, float y, float scale, glm::vec3 color)

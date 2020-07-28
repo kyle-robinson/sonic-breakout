@@ -3,8 +3,10 @@
 #include "SpriteRenderer.h"
 #include "ParticleGenerator.h"
 #include "PostProcessor.h"
+#include "TextRenderer.h"
 
 #include <algorithm>
+#include <sstream>
 #include <irrKlang/irrKlang.h>
 
 SpriteRenderer* Renderer;
@@ -12,13 +14,14 @@ GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
 PostProcessor* Effects;
+TextRenderer* Text;
 irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
 
 float ShakeTime = 0.0f;
 bool paused = false;
 bool pauseKeyPressed = false;
 
-Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
+Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height), Level(0), Lives(3)
 {
 
 }
@@ -30,6 +33,7 @@ Game::~Game()
 	delete Ball;
 	delete Particles;
 	delete Effects;
+	delete Text;
 	SoundEngine->drop();
 }
 
@@ -102,13 +106,17 @@ void Game::Init()
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
 
-	//audio
+	// Audio
 	SoundEngine->play2D("res/audio/breakout.mp3", true);
+
+	// Text
+	Text = new TextRenderer(this->Width, this->Height);
+	Text->Load("res/fonts/PressStart2P-Regular.ttf", 24);
 }
 
 void Game::ProcessInput(float dt)
 {
-	if (this->Keys[GLFW_KEY_P] == GLFW_PRESS && !pauseKeyPressed)
+	/*if (this->Keys[GLFW_KEY_P] == GLFW_PRESS && !pauseKeyPressed)
 	{
 		paused = !paused;
 		pauseKeyPressed = true;
@@ -116,44 +124,70 @@ void Game::ProcessInput(float dt)
 	if (this->Keys[GLFW_KEY_P] == GLFW_RELEASE)
 	{
 		pauseKeyPressed = false;
+	}*/
+
+	if (this->State == GAME_MENU)
+	{
+		if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER])
+		{
+			this->State = GAME_ACTIVE;
+			this->KeysProcessed[GLFW_KEY_ENTER] = true;
+		}
+		if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W])
+		{
+			this->Level = (this->Level + 1) % 4;
+			this->KeysProcessed[GLFW_KEY_W] = true;
+		}
+		if (this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S])
+		{
+			if (this->Level > 0)
+				--this->Level;
+			else
+				this->Level = 3;
+			this->KeysProcessed[GLFW_KEY_S] = true;
+		}
 	}
 
-	if (this->State == GAME_ACTIVE && !paused)
+	if (this->State == GAME_ACTIVE)
 	{
 		float velocity = PLAYER_VELOCITY * dt;
 		if (this->Keys[GLFW_KEY_A])
 		{
 			if (Player->Position.x >= 0.0f)
+			{
 				Player->Position.x -= velocity;
+				if (Ball->Stuck)
+					Ball->Position.x -= velocity;
+			}
 		}
 		if (this->Keys[GLFW_KEY_D])
 		{
 			if (Player->Position.x <= this->Width - Player->Size.x)
+			{
 				Player->Position.x += velocity;
+				if (Ball->Stuck)
+					Ball->Position.x += velocity;
+			}
 		}
-		
 		if (this->Keys[GLFW_KEY_SPACE])
 			Ball->Stuck = false;
 
-		if (this->Keys[GLFW_KEY_1])
+		/*if (this->Keys[GLFW_KEY_1])
 			this->Level = 0;
 		if (this->Keys[GLFW_KEY_2])
 			this->Level = 1;
 		if (this->Keys[GLFW_KEY_3])
 			this->Level = 2;
 		if (this->Keys[GLFW_KEY_4])
-			this->Level = 3;
+			this->Level = 3;*/
 	}
 }
 
 void Game::Update(float dt)
 {	
-	if (this->State == GAME_ACTIVE && !paused)
+	if (this->State == GAME_ACTIVE)
 	{
 		Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
-
-		if (Ball->Stuck)
-			Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 
 		Ball->Move(dt, this->Width);
 		this->DoCollisions();
@@ -168,7 +202,14 @@ void Game::Update(float dt)
 
 		if (Ball->Position.y >= this->Height)
 		{
-			this->ResetLevel();
+			--this->Lives;
+			
+			if (this->Lives == 0)
+			{
+				this->ResetLevel();
+				this->State = GAME_MENU;
+			}
+
 			this->ResetPlayer();
 		}
 	}
@@ -199,7 +240,7 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
-	if (this->State == GAME_ACTIVE)
+	if (this->State == GAME_ACTIVE || this->State == GAME_MENU)
 	{
 		Effects->BeginRender();
 		
@@ -224,8 +265,16 @@ void Game::Render()
 
 		Effects->EndRender();
 		Effects->Render(glfwGetTime());
+
+		std::stringstream ss; ss << this->Lives;
+		Text->RenderText("Lives: " + ss.str(), 5.0f, 5.0f, 1.0f);
 	}
-	
+
+	if (this->State == GAME_MENU)
+	{
+		Text->RenderText("Press ENTER to start!", 250.0f, Height / 2, 1.0f);
+		Text->RenderText("Press W or S to select level.", 245.0f, Height / 2 + 20.0f, 0.75f);
+	}
 }
 
 bool Game::CheckCollision(GameObject &one, GameObject &two) // AABB
@@ -377,6 +426,8 @@ void Game::ResetLevel()
 		this->Levels[2].Load("res/levels/three.lvl", this->Width, this->Height / 2);
 	else if (this->Level == 4)
 		this->Levels[4].Load("res/levels/four.lvl", this->Width, this->Height / 2);
+
+	this->Lives = 3;
 }
 
 void Game::ResetPlayer()
