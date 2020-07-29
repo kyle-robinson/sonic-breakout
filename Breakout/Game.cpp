@@ -5,6 +5,7 @@
 #include "PostProcessor.h"
 #include "TextRenderer.h"
 
+#include <iostream>
 #include <algorithm>
 #include <sstream>
 #include <irrKlang/irrKlang.h>
@@ -13,6 +14,7 @@ SpriteRenderer* Renderer;
 GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
+ParticleGenerator* SuperParticles;
 PostProcessor* Effects;
 TextRenderer* Text;
 irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
@@ -21,6 +23,7 @@ float ShakeTime = 0.0f;
 bool paused = false;
 bool pauseKeyPressed = false;
 bool isPlaying = false;
+bool super_sonic = false;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height), Level(0), Lives(3)
 {
@@ -33,6 +36,7 @@ Game::~Game()
 	delete Player;
 	delete Ball;
 	delete Particles;
+	delete SuperParticles;
 	delete Effects;
 	delete Text;
 	SoundEngine->drop();
@@ -73,26 +77,56 @@ void Game::Init()
 	
 	//ResourceManager::LoadTexture("res/textures/misc/background.jpg", false, "background");
 	//ResourceManager::LoadTexture("res/textures/misc/awesomeface.png", true, "face");
-	ResourceManager::LoadTexture("res/textures/misc/block.png", false, "block");
-	ResourceManager::LoadTexture("res/textures/misc/block_solid.png", false, "block_solid");
+	//ResourceManager::LoadTexture("res/textures/misc/block.png", false, "block");
+	//ResourceManager::LoadTexture("res/textures/misc/block_solic.png", false, "block_solid");
 	//ResourceManager::LoadTexture("res/textures/misc/paddle.png", true, "paddle");
-	ResourceManager::LoadTexture("res/textures/misc/particle.png", true, "particle");
+	//ResourceManager::LoadTexture("res/textures/misc/particle.png", true, "particle");
 	ResourceManager::LoadTexture("res/textures/misc/powerup_speed.png", true, "powerup_speed");
 	ResourceManager::LoadTexture("res/textures/misc/powerup_sticky.png", true, "powerup_sticky");
 	ResourceManager::LoadTexture("res/textures/misc/powerup_increase.png", true, "powerup_increase");
 	ResourceManager::LoadTexture("res/textures/misc/powerup_confuse.png", true, "powerup_confuse");
-	ResourceManager::LoadTexture("res/textures/misc/powerup_chaos.png", true, "powerup_chaos");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_chaos.png", true, "powerup_chaos");
 	ResourceManager::LoadTexture("res/textures/misc/powerup_passthrough.png", true, "powerup_passthrough");
 
-	// Sonic
-	ResourceManager::LoadTexture("res/textures/sonic/title.png", true, "title");
-	ResourceManager::LoadTexture("res/textures/sonic/green-hill.png", true, "background");
-	ResourceManager::LoadTexture("res/textures/sonic/sonic.png", true, "face");
-	ResourceManager::LoadTexture("res/textures/sonic/platform.png", true, "paddle");
+	// Textures
+	// Backgrounds
+	ResourceManager::LoadTexture("res/textures/sprites/title.png", true, "title");
+	ResourceManager::LoadTexture("res/textures/backgrounds/green-hill-zone.png", false, "green-hill-zone");
+	ResourceManager::LoadTexture("res/textures/backgrounds/marble-zone.png", false, "marble-zone");
+	ResourceManager::LoadTexture("res/textures/backgrounds/starlight-zone.png", false, "starlight-zone");
+	ResourceManager::LoadTexture("res/textures/backgrounds/final-zone.png", false, "final-zone");
+	// Ball
+	ResourceManager::LoadTexture("res/textures/sprites/sonic.png", true, "sonic");
+	ResourceManager::LoadTexture("res/textures/sprites/super-sonic.png", true, "super-sonic");
+	// Player
+	ResourceManager::LoadTexture("res/textures/sprites/green-hill-platform.png", true, "green-hill-platform");
+	ResourceManager::LoadTexture("res/textures/sprites/marble-platform.png", true, "marble-platform");
+	ResourceManager::LoadTexture("res/textures/sprites/starlight-platform.png", true, "starlight-platform");
+	ResourceManager::LoadTexture("res/textures/sprites/final-platform.png", true, "final-platform");
+	// Particles
+	ResourceManager::LoadTexture("res/textures/sprites/particle.png", true, "particle");
+	ResourceManager::LoadTexture("res/textures/sprites/super-particle.png", true, "super-particle");
+	// Blocks
+	ResourceManager::LoadTexture("res/textures/blocks/blue-block.png", false, "blue");
+	ResourceManager::LoadTexture("res/textures/blocks/dark-blue-block.png", false, "dark-blue");
+	ResourceManager::LoadTexture("res/textures/blocks/teal-block.png", false, "teal");
+	ResourceManager::LoadTexture("res/textures/blocks/green-block.png", false, "green");
+	ResourceManager::LoadTexture("res/textures/blocks/red-block.png", false, "red");
+	ResourceManager::LoadTexture("res/textures/blocks/yellow-block.png", false, "yellow");
+	ResourceManager::LoadTexture("res/textures/blocks/pink-block.png", false, "pink");
+	ResourceManager::LoadTexture("res/textures/blocks/metal.png", true, "metal");
+	// Powerups
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_speed.png", true, "powerup_speed");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_sticky.png", true, "powerup_sticky");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_increase.png", true, "powerup_increase");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_confuse.png", true, "powerup_confuse");
+	ResourceManager::LoadTexture("res/textures/sonic/sprites/eggman.png", true, "powerup_chaos");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_passthrough.png", true, "powerup_passthrough");
 
 	// Render-Specific Controls
 	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
+	SuperParticles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("super-particle"), 500);
 	Effects = new PostProcessor(ResourceManager::GetShader("post_processor"), this->Width, this->Height);
 
 	// Levels
@@ -111,7 +145,7 @@ void Game::Init()
 	Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
-	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
+	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("sonic"));
 
 	// Text
 	Text = new TextRenderer(this->Width, this->Height);
@@ -139,7 +173,21 @@ void Game::ProcessInput(float dt)
 			Effects->Circle = false;
 			isPlaying = false;
 			SoundEngine->stopAllSounds();
-			SoundEngine->play2D("res/audio/sonic/green-hill_lower.mp3", true);
+			switch (this->Level)
+			{
+			case 0:
+				SoundEngine->play2D("res/audio/music/green-hill_lower.mp3", true);
+				break;
+			case 1:
+				SoundEngine->play2D("res/audio/music/marble.mp3", true);
+				break;
+			case 2:
+				SoundEngine->play2D("res/audio/music/starlight.mp3", true);
+				break;
+			case 3:
+				SoundEngine->play2D("res/audio/music/final.mp3", true);
+				break;
+			}
 		}
 		if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W])
 		{
@@ -218,7 +266,7 @@ void Game::Update(float dt)
 		if (!isPlaying)
 		{
 			SoundEngine->stopAllSounds();
-			SoundEngine->play2D("res/audio/sonic/title.mp3", true);
+			SoundEngine->play2D("res/audio/music/title.mp3", true);
 			isPlaying = true;
 		}
 		Effects->Circle = true;
@@ -226,10 +274,10 @@ void Game::Update(float dt)
 	
 	if (this->State == GAME_ACTIVE)
 	{
-		Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
+		super_sonic ? SuperParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)) : Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
 
 		Ball->Move(dt, this->Width);
-		Ball->Rotation += 20.0f;
+		Ball->Stuck ? Ball->Rotation = 0.0f : Ball->Rotation += 20.0f;
 		this->DoCollisions();
 		this->UpdatePowerUps(dt);
 
@@ -243,6 +291,8 @@ void Game::Update(float dt)
 		if (Ball->Position.y >= this->Height)
 		{
 			--this->Lives;
+			Ball->Velocity = INITIAL_BALL_VELOCITY;
+			super_sonic = false;
 			
 			if (this->Lives == 0)
 			{
@@ -250,10 +300,10 @@ void Game::Update(float dt)
 				this->State = GAME_LOSE;
 				Effects->Confuse = true;
 				SoundEngine->stopAllSounds();
-				SoundEngine->play2D("res/audio/sonic/game-over.mp3", false);
+				SoundEngine->play2D("res/audio/effects/game-over.mp3", false);
 			}
 			else
-				SoundEngine->play2D("res/audio/sonic/death.mp3", false);
+				SoundEngine->play2D("res/audio/death.mp3", false);
 
 			this->ResetPlayer();
 		}
@@ -266,7 +316,7 @@ void Game::Update(float dt)
 		Effects->Chaos = true;
 		this->State = GAME_WIN;
 		SoundEngine->stopAllSounds();
-		SoundEngine->play2D("res/audio/sonic/stage-clear.mp3", false);
+		SoundEngine->play2D("res/audio/effects/stage-clear.mp3", false);
 	}
 
 	// Load next level
@@ -295,51 +345,68 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
-	if (this->State == GAME_ACTIVE || this->State == GAME_WIN || this->State == GAME_LOSE)
+	if (this->State == GAME_ACTIVE || this->State == GAME_MENU || this->State == GAME_WIN || this->State == GAME_LOSE)
 	{
 		Effects->BeginRender();
 		
-		Texture2D backgroundTexture = ResourceManager::GetTexture("background");
+		Texture2D backgroundTexture;
+		Texture2D playerTexture;
+		switch (this->Level)
+		{
+		case 0:
+			playerTexture = ResourceManager::GetTexture("green-hill-platform");
+			backgroundTexture = ResourceManager::GetTexture("green-hill-zone");
+			break;
+		case 1:
+			playerTexture = ResourceManager::GetTexture("marble-platform");
+			backgroundTexture = ResourceManager::GetTexture("marble-zone");
+			break;
+		case 2:
+			playerTexture = ResourceManager::GetTexture("starlight-platform");
+			backgroundTexture = ResourceManager::GetTexture("starlight-zone");
+			break;
+		case 3:
+			playerTexture = ResourceManager::GetTexture("final-platform");
+			backgroundTexture = ResourceManager::GetTexture("final-zone");
+			break;
+		}
 		Renderer->DrawSprite(backgroundTexture, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
 				
 		this->Levels[this->Level].Draw(*Renderer);
 		
+		Player->Sprite = playerTexture;
 		Player->Draw(*Renderer);
 
-		for (PowerUp& powerUp : this->PowerUps)
-			if (!powerUp.Destroyed)
-				powerUp.Draw(*Renderer);
+		if (this->State == GAME_ACTIVE)
+		{
+			for (PowerUp& powerUp : this->PowerUps)
+				if (!powerUp.Destroyed)
+					powerUp.Draw(*Renderer);
+		}
 
-		Particles->Draw();
+		super_sonic ? SuperParticles->Draw() : Particles->Draw();
 
+		Texture2D sonicTexture = ResourceManager::GetTexture("sonic");
+		Texture2D superTexture = ResourceManager::GetTexture("super-sonic");
+		super_sonic ? Ball->Sprite = superTexture : Ball->Sprite = sonicTexture;
 		Ball->Draw(*Renderer);
 
 		Effects->EndRender();
 		Effects->Render(glfwGetTime());
 
-		std::stringstream ss; ss << this->Lives;
-		Text->RenderText("Lives: " + ss.str(), 5.0f, 5.0f, 1.0f);
+		if (this->State == GAME_ACTIVE)
+		{
+			std::stringstream ss; ss << this->Lives;
+			Text->RenderText("Lives: " + ss.str(), 2.5f, 2.5f, 1.0f, glm::vec3(0.0f));
+			Text->RenderText("Lives: " + ss.str(), 5.0f, 5.0f, 1.0f);
+		}
 	}
 
 	if (this->State == GAME_MENU)
 	{
-		Effects->BeginRender();
-
-		Texture2D backgroundTexture = ResourceManager::GetTexture("background");
-		Renderer->DrawSprite(backgroundTexture, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
-
-		this->Levels[this->Level].Draw(*Renderer);
-
-		Player->Draw(*Renderer);
-
-		Ball->Draw(*Renderer);
-
-		Effects->EndRender();
-		Effects->Render(glfwGetTime());
-
-		Text->RenderText("Press ENTER to start!", 315.0f, Height / 2 + 35.0f, 1.0f, glm::vec3(0.0f));
+		Text->RenderText("Press ENTER to start!", 317.5f, Height / 2 + 37.5f, 1.0f, glm::vec3(0.0f));
 		Text->RenderText("Press ENTER to start!", 320.0f, Height / 2 + 40.0f, 1.0f);
-		Text->RenderText("Press W or S to select level.", 315.0f, Height / 2 + 75.0f, 0.75f, glm::vec3(0.0f));
+		Text->RenderText("Press W or S to select level.", 317.5f, Height / 2 + 77.5f, 0.75f, glm::vec3(0.0f));
 		Text->RenderText("Press W or S to select level.", 320.0f, Height / 2 + 80.0f, 0.75f);
 		Texture2D titleTexture = ResourceManager::GetTexture("title");
 		Renderer->DrawSprite(titleTexture, glm::vec2(this->Width / 2 - 256.0f, this->Height / 2 - 300.0f), glm::vec2(512.0f, 300.0f), 0.0f);
@@ -347,17 +414,17 @@ void Game::Render()
 
 	if (this->State == GAME_WIN)
 	{
-		Text->RenderText("You WON!!!", 415.0f, Height / 2 - 25.0f, 1.0f, glm::vec3(0.0f));
+		Text->RenderText("You WON!!!", 417.5f, Height / 2 - 27.5f, 1.0f, glm::vec3(0.0f));
 		Text->RenderText("You WON!!!", 420.0f, Height / 2 - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-		Text->RenderText("Press ENTER to retry or ESC to quit.", 185.0f, Height / 2 + 25.0f, 1.0f, glm::vec3(0.0f));
+		Text->RenderText("Press ENTER to retry or ESC to quit.", 187.5f, Height / 2 + 27.5f, 1.0f, glm::vec3(0.0f));
 		Text->RenderText("Press ENTER to retry or ESC to quit.", 190.0f, Height / 2 + 30.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 	}
 
 	if (this->State == GAME_LOSE)
 	{
-		Text->RenderText("GAME OVER!", 415.0f, Height / 2 - 25.0f, 1.0f, glm::vec3(0.0f));
+		Text->RenderText("GAME OVER!", 417.5f, Height / 2 - 22.5f, 1.0f, glm::vec3(0.0f));
 		Text->RenderText("GAME OVER!", 420.0f, Height / 2 - 20.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-		Text->RenderText("Press ENTER to retry or ESC to quit.", 185.0f, Height / 2 + 25.0f, 1.0f, glm::vec3(0.0f));
+		Text->RenderText("Press ENTER to retry or ESC to quit.", 187.5f, Height / 2 + 27.5f, 1.0f, glm::vec3(0.0f));
 		Text->RenderText("Press ENTER to retry or ESC to quit.", 190.0f, Height / 2 + 30.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 	}
 }
@@ -405,13 +472,13 @@ void Game::DoCollisions()
 				{
 					box.Destroyed = true;
 					this->SpawnPowerUps(box);
-					SoundEngine->play2D("res/audio/sonic/collapse.mp3", false);
+					SoundEngine->play2D("res/audio/sonic/effects/collapse.mp3", false);
 				}
 				else
 				{
 					ShakeTime = 0.05f;
 					Effects->Shake = true;
-					SoundEngine->play2D("res/audio/sonic/bumper.mp3", false);
+					SoundEngine->play2D("res/audio/sonic/effects/bumper.mp3", false);
 				}
 
 				// collision resolution
@@ -459,7 +526,7 @@ void Game::DoCollisions()
 		Ball->Velocity.y = -1.0f * abs(Ball->Velocity.y);
 		Ball->Velocity = glm::normalize(Ball->Velocity) * glm::length(oldVelocity);
 		Ball->Stuck = Ball->Sticky;
-		SoundEngine->play2D("res/audio/sonic/bong.mp3", false);
+		SoundEngine->play2D("res/audio/effects/bong.mp3", false);
 	}
 
 	for (PowerUp &powerUp : this->PowerUps)
@@ -473,7 +540,12 @@ void Game::DoCollisions()
 				ActivatePowerUp(powerUp);
 				powerUp.Destroyed = true;
 				powerUp.Activated = true;
-				SoundEngine->play2D("res/audio/sonic/rings.mp3", false);
+				if (powerUp.Type == "speed")
+					SoundEngine->play2D("res/audio/effects/emerald.mp3", false);
+				else if (powerUp.Type == "chaos")
+					SoundEngine->play2D("res/audio/effects/laugh.mp3", false);
+				else
+					SoundEngine->play2D("res/audio/effects/rings.mp3", false);
 			}
 		}
 	}
@@ -545,8 +617,9 @@ void Game::SpawnPowerUps(GameObject& block)
 	if (ShouldSpawn(15))
 		this->PowerUps.push_back(PowerUp("confuse", glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
 
-	if (ShouldSpawn(15))
-		this->PowerUps.push_back(PowerUp("chaos", glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
+	if (ShouldSpawn(1))
+		this->PowerUps.push_back(PowerUp("chaos", glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
+	//this->PowerUps.push_back(PowerUp("chaos", glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
 }
 
 void Game::ActivatePowerUp(PowerUp& powerUp)
@@ -554,6 +627,7 @@ void Game::ActivatePowerUp(PowerUp& powerUp)
 	if (powerUp.Type == "speed")
 	{
 		Ball->Velocity *= 1.2f;
+		super_sonic = true;
 	}
 	else if (powerUp.Type == "sticky")
 	{
