@@ -15,6 +15,7 @@ GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
 ParticleGenerator* SuperParticles;
+ParticleGenerator* PassthroughParticles;
 PostProcessor* Effects;
 TextRenderer* Text;
 irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
@@ -37,6 +38,7 @@ Game::~Game()
 	delete Ball;
 	delete Particles;
 	delete SuperParticles;
+	delete PassthroughParticles;
 	delete Effects;
 	delete Text;
 	SoundEngine->drop();
@@ -81,12 +83,12 @@ void Game::Init()
 	//ResourceManager::LoadTexture("res/textures/misc/block_solic.png", false, "block_solid");
 	//ResourceManager::LoadTexture("res/textures/misc/paddle.png", true, "paddle");
 	//ResourceManager::LoadTexture("res/textures/misc/particle.png", true, "particle");
-	ResourceManager::LoadTexture("res/textures/misc/powerup_speed.png", true, "powerup_speed");
-	ResourceManager::LoadTexture("res/textures/misc/powerup_sticky.png", true, "powerup_sticky");
-	ResourceManager::LoadTexture("res/textures/misc/powerup_increase.png", true, "powerup_increase");
-	ResourceManager::LoadTexture("res/textures/misc/powerup_confuse.png", true, "powerup_confuse");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_speed.png", true, "powerup_speed");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_sticky.png", true, "powerup_sticky");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_increase.png", true, "powerup_increase");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_confuse.png", true, "powerup_confuse");
 	//ResourceManager::LoadTexture("res/textures/misc/powerup_chaos.png", true, "powerup_chaos");
-	ResourceManager::LoadTexture("res/textures/misc/powerup_passthrough.png", true, "powerup_passthrough");
+	//ResourceManager::LoadTexture("res/textures/misc/powerup_passthrough.png", true, "powerup_passthrough");
 
 	// Textures
 	// Backgrounds
@@ -106,6 +108,7 @@ void Game::Init()
 	// Particles
 	ResourceManager::LoadTexture("res/textures/sprites/particle.png", true, "particle");
 	ResourceManager::LoadTexture("res/textures/sprites/super-particle.png", true, "super-particle");
+	ResourceManager::LoadTexture("res/textures/sprites/pass-particle.png", true, "passthrough-particle");
 	// Blocks
 	ResourceManager::LoadTexture("res/textures/blocks/blue-block.png", false, "blue");
 	ResourceManager::LoadTexture("res/textures/blocks/dark-blue-block.png", false, "dark-blue");
@@ -116,17 +119,18 @@ void Game::Init()
 	ResourceManager::LoadTexture("res/textures/blocks/pink-block.png", false, "pink");
 	ResourceManager::LoadTexture("res/textures/blocks/metal.png", true, "metal");
 	// Powerups
-	//ResourceManager::LoadTexture("res/textures/misc/powerup_speed.png", true, "powerup_speed");
-	//ResourceManager::LoadTexture("res/textures/misc/powerup_sticky.png", true, "powerup_sticky");
-	//ResourceManager::LoadTexture("res/textures/misc/powerup_increase.png", true, "powerup_increase");
-	//ResourceManager::LoadTexture("res/textures/misc/powerup_confuse.png", true, "powerup_confuse");
-	ResourceManager::LoadTexture("res/textures/sonic/sprites/eggman.png", true, "powerup_chaos");
-	//ResourceManager::LoadTexture("res/textures/misc/powerup_passthrough.png", true, "powerup_passthrough");
+	ResourceManager::LoadTexture("res/textures/sprites/yellow-emerald.png", true, "powerup_speed");
+	ResourceManager::LoadTexture("res/textures/sprites/purple-emerald.png", true, "powerup_sticky");
+	ResourceManager::LoadTexture("res/textures/sprites/blue-emerald.png", true, "powerup_increase");
+	ResourceManager::LoadTexture("res/textures/sprites/red-emerald.png", true, "powerup_passthrough");
+	ResourceManager::LoadTexture("res/textures/sprites/star-enemy.png", true, "powerup_confuse");
+	ResourceManager::LoadTexture("res/textures/sprites/eggman.png", true, "powerup_chaos");
 
 	// Render-Specific Controls
 	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
 	SuperParticles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("super-particle"), 500);
+	PassthroughParticles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("passthrough-particle"), 500);
 	Effects = new PostProcessor(ResourceManager::GetShader("post_processor"), this->Width, this->Height);
 
 	// Levels
@@ -185,7 +189,7 @@ void Game::ProcessInput(float dt)
 				SoundEngine->play2D("res/audio/music/starlight.mp3", true);
 				break;
 			case 3:
-				SoundEngine->play2D("res/audio/music/final.mp3", true);
+				SoundEngine->play2D("res/audio/music/final-lower.mp3", true);
 				break;
 			}
 		}
@@ -274,7 +278,8 @@ void Game::Update(float dt)
 	
 	if (this->State == GAME_ACTIVE)
 	{
-		super_sonic ? SuperParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)) : Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
+		//super_sonic ? SuperParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)) : Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
+		Ball->PassThrough ? PassthroughParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)) : (super_sonic ? SuperParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)) : Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)));
 
 		Ball->Move(dt, this->Width);
 		Ball->Stuck ? Ball->Rotation = 0.0f : Ball->Rotation += 20.0f;
@@ -301,9 +306,10 @@ void Game::Update(float dt)
 				Effects->Confuse = true;
 				SoundEngine->stopAllSounds();
 				SoundEngine->play2D("res/audio/effects/game-over.mp3", false);
+				SoundEngine->play2D("res/audio/eggman/laughing-long.mp3", false);
 			}
 			else
-				SoundEngine->play2D("res/audio/death.mp3", false);
+				SoundEngine->play2D("res/audio/effects/death.mp3", false);
 
 			this->ResetPlayer();
 		}
@@ -383,8 +389,8 @@ void Game::Render()
 				if (!powerUp.Destroyed)
 					powerUp.Draw(*Renderer);
 		}
-
-		super_sonic ? SuperParticles->Draw() : Particles->Draw();
+			
+		Ball->PassThrough ? PassthroughParticles->Draw() : (super_sonic ? SuperParticles->Draw() : Particles->Draw());
 
 		Texture2D sonicTexture = ResourceManager::GetTexture("sonic");
 		Texture2D superTexture = ResourceManager::GetTexture("super-sonic");
@@ -472,13 +478,13 @@ void Game::DoCollisions()
 				{
 					box.Destroyed = true;
 					this->SpawnPowerUps(box);
-					SoundEngine->play2D("res/audio/sonic/effects/collapse.mp3", false);
+					SoundEngine->play2D("res/audio/effects/collapse.mp3", false);
 				}
 				else
 				{
 					ShakeTime = 0.05f;
 					Effects->Shake = true;
-					SoundEngine->play2D("res/audio/sonic/effects/bumper.mp3", false);
+					SoundEngine->play2D("res/audio/effects/metal.wav", false);
 				}
 
 				// collision resolution
@@ -542,8 +548,15 @@ void Game::DoCollisions()
 				powerUp.Activated = true;
 				if (powerUp.Type == "speed")
 					SoundEngine->play2D("res/audio/effects/emerald.mp3", false);
+				else if (powerUp.Type == "confuse")
+				{
+					SoundEngine->play2D("res/audio/eggman/laser2.wav", false);
+				}
 				else if (powerUp.Type == "chaos")
-					SoundEngine->play2D("res/audio/effects/laugh.mp3", false);
+				{
+					SoundEngine->play2D("res/audio/eggman/laser.mp3", false);
+					SoundEngine->play2D("res/audio/eggman/laughing-2.mp3", false);
+				}
 				else
 					SoundEngine->play2D("res/audio/effects/rings.mp3", false);
 			}
@@ -603,23 +616,22 @@ bool Game::ShouldSpawn(unsigned int chance)
 void Game::SpawnPowerUps(GameObject& block)
 {
 	if (ShouldSpawn(75))
-		this->PowerUps.push_back(PowerUp("speed", glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_speed")));
-
-	if (ShouldSpawn(75))
-		this->PowerUps.push_back(PowerUp("sticky", glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
-
-	if (ShouldSpawn(75))
-		this->PowerUps.push_back(PowerUp("pass-through", glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position, ResourceManager::GetTexture("powerup_passthrough")));
-
-	if (ShouldSpawn(75))
-		this->PowerUps.push_back(PowerUp("increase", glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
-
-	if (ShouldSpawn(15))
-		this->PowerUps.push_back(PowerUp("confuse", glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
+		this->PowerUps.push_back(PowerUp("speed", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_speed")));
 
 	if (ShouldSpawn(1))
-		this->PowerUps.push_back(PowerUp("chaos", glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
-	//this->PowerUps.push_back(PowerUp("chaos", glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
+		this->PowerUps.push_back(PowerUp("sticky", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
+
+	if (ShouldSpawn(75))
+		this->PowerUps.push_back(PowerUp("pass-through", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 10.0f, block.Position, ResourceManager::GetTexture("powerup_passthrough")));
+
+	if (ShouldSpawn(75))
+		this->PowerUps.push_back(PowerUp("increase", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
+
+	if (ShouldSpawn(75))
+		this->PowerUps.push_back(PowerUp("confuse", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
+
+	if (ShouldSpawn(15))
+		this->PowerUps.push_back(PowerUp("chaos", glm::vec2(60.0f, 20.0f), glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
 }
 
 void Game::ActivatePowerUp(PowerUp& powerUp)
