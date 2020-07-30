@@ -143,7 +143,7 @@ void ParticleGenerator::RespawnParticle(Particle& particle, glm::vec2 position, 
 	if (particleTimer >= 100)
 		particleTimer = 0;
 
-	float theta = 1000.0f * 3.1315826f * float(particleTimer);
+	float theta = 1000.0f * 3.1315826f * float(particleTimer % 10);
 	float x = cosf(theta) * 5.0f * float(particleTimer % 10);
 	float y = sinf(theta) * 5.0f * float(particleTimer % 10);
 	particle.Position = glm::vec2(x + position.x + offset.x, y + position.y + offset.y);
