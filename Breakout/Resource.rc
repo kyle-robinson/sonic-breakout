@@ -1,0 +1,6 @@
+#ifndef _Resource_rc
+#define _Resource_rc
+
+MAINICON ICON "Sonic.ico"
+
+#endif // _Resource_rc

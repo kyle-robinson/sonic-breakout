@@ -786,20 +786,15 @@ void Game::SpawnPowerUps(GameObject& block)
 {
 	if (ShouldSpawn(75))
 		this->PowerUps.push_back(PowerUp("speed", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_speed")));
-
-	if (ShouldSpawn(75))
+	else if (ShouldSpawn(75))
 		this->PowerUps.push_back(PowerUp("sticky", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
-
-	if (ShouldSpawn(75))
+	else if (ShouldSpawn(75))
 		this->PowerUps.push_back(PowerUp("pass-through", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 10.0f, block.Position, ResourceManager::GetTexture("powerup_passthrough")));
-
-	if (ShouldSpawn(75))
+	else if (ShouldSpawn(75))
 		this->PowerUps.push_back(PowerUp("increase", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
-
-	if (ShouldSpawn(15))
+	else if (ShouldSpawn(15))
 		this->PowerUps.push_back(PowerUp("confuse", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
-
-	if (ShouldSpawn(15))
+	else if (ShouldSpawn(15))
 		this->PowerUps.push_back(PowerUp("chaos", glm::vec2(60.0f, 20.0f), glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
 }
 
