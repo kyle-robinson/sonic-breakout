@@ -58,6 +58,7 @@ uniform float blur_kernel[9];
 uniform bool chaos;
 uniform bool confuse;
 uniform bool shake;
+uniform bool darken;
 
 void main()
 {
@@ -84,6 +85,10 @@ void main()
 		for (int i = 0; i < 9; i++)
 			FragColor += vec4(sample[i] * blur_kernel[i], 0.0f);
 		FragColor.a = 1.0f;
+	}
+	else if (darken)
+	{
+		FragColor = texture(scene, TexCoords) * 0.4f;
 	}
 	else
 	{
