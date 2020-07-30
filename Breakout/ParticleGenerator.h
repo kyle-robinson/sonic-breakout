@@ -26,6 +26,7 @@ class ParticleGenerator
 public:
 	ParticleGenerator(Shader shader, Texture2D texture, unsigned int amount);
 	void Update(float dt, GameObject &object, unsigned int newParticles, glm::vec2 offset = glm::vec2(0.0f, 0.0f));
+	void Update(float dt, glm::vec2 position, unsigned int newParticles, glm::vec2 offset);
 	void Draw();
 private:
 	std::vector<Particle> particles;
@@ -38,6 +39,7 @@ private:
 	void Init(); // Init VAO and VBO
 	unsigned int FirstUnusedParticle(); // Returns first particle index that's currently unused
 	void RespawnParticle(Particle &particle, GameObject &object, glm::vec2 offset = glm::vec2(0.0f, 0.0f));
+	void RespawnParticle(Particle& particle, glm::vec2 position, glm::vec2 offset);
 };
 
 #endif // !PARTICLE_GENERATOR_H

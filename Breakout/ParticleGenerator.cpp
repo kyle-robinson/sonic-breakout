@@ -1,5 +1,7 @@
 #include "ParticleGenerator.h"
 
+int particleTimer = 0;
+
 ParticleGenerator::ParticleGenerator(Shader shader, Texture2D texture, unsigned int amount)
 	: shader(shader), texture(texture), amount(amount)
 {
@@ -13,6 +15,28 @@ void ParticleGenerator::Update(float dt, GameObject& object, unsigned int newPar
 	{
 		int unusedParticle = this->FirstUnusedParticle();
 		this->RespawnParticle(this->particles[unusedParticle], object, offset);
+	}
+
+	// Update all particles
+	for (unsigned int i = 0; i < this->amount; ++i)
+	{
+		Particle& p = this->particles[i];
+		p.Life -= dt;
+		if (p.Life > 0.0f) // particle is alive
+		{
+			p.Position -= p.Velocity * dt;
+			p.Color -= dt * 2.5f;
+		}
+	}
+}
+
+void ParticleGenerator::Update(float dt, glm::vec2 position, unsigned int newParticles, glm::vec2 offset)
+{
+	// Add new particles
+	for (unsigned int i = 0; i < newParticles; ++i)
+	{
+		int unusedParticle = this->FirstUnusedParticle();
+		this->RespawnParticle(this->particles[unusedParticle], position, offset);
 	}
 
 	// Update all particles
@@ -113,4 +137,22 @@ void ParticleGenerator::RespawnParticle(Particle& particle, GameObject& object, 
 	particle.Color = glm::vec4(rColor, rColor, rColor, 1.0f);
 	particle.Life = 1.0f;
 	particle.Velocity = object.Velocity * 0.1f;
+}
+
+void ParticleGenerator::RespawnParticle(Particle& particle, glm::vec2 position, glm::vec2 offset)
+{
+	particleTimer++;
+	if (particleTimer >= 100)
+		particleTimer = 0;
+
+	float theta = 1000.0f * 3.1315826f * float(particleTimer);
+	float x = cosf(theta) * 5.0f * float(particleTimer % 10);
+	float y = sinf(theta) * 5.0f * float(particleTimer % 10);
+	particle.Position = glm::vec2(x + position.x + offset.x, y + position.y + offset.y);
+	particle.Position = glm::vec2(x + position.x + offset.x, y + position.y + offset.y);
+
+	float rColor = 0.5f + ((rand() % 100) / 100.0f);
+	particle.Color = glm::vec4(rColor, rColor, rColor, 1.0f);
+	particle.Life = 1.0f;
+	particle.Velocity = glm::vec2(0.0f, 0.0f) * 0.1f;
 }

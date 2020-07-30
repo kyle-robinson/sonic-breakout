@@ -16,16 +16,20 @@ BallObject* Ball;
 ParticleGenerator* Particles;
 ParticleGenerator* SuperParticles;
 ParticleGenerator* PassthroughParticles;
+ParticleGenerator* BoxParticles;
 PostProcessor* Effects;
 TextRenderer* Text;
 irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
 
+glm::vec2 boxPosition(-100.0f, -100.0f);
 float ShakeTime = 0.0f;
-bool paused = false;
-bool pauseKeyPressed = false;
 bool isPlaying = false;
+
 bool super_sonic = false;
 bool notStarted = true;
+
+bool boxDestroyed = false;
+int boxTimer = 10;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height), Level(0), Lives(3)
 {
@@ -40,6 +44,7 @@ Game::~Game()
 	delete Particles;
 	delete SuperParticles;
 	delete PassthroughParticles;
+	delete BoxParticles;
 	delete Effects;
 	delete Text;
 	SoundEngine->drop();
@@ -79,6 +84,7 @@ void Game::Init()
 	ResourceManager::LoadTexture("res/textures/sprites/particle.png", true, "particle");
 	ResourceManager::LoadTexture("res/textures/sprites/super-particle.png", true, "super-particle");
 	ResourceManager::LoadTexture("res/textures/sprites/pass-particle.png", true, "passthrough-particle");
+	ResourceManager::LoadTexture("res/textures/sprites/box-particle.png", true, "box-particle");
 	// Blocks
 	ResourceManager::LoadTexture("res/textures/blocks/blue-block.png", false, "blue");
 	ResourceManager::LoadTexture("res/textures/blocks/dark-blue-block.png", false, "dark-blue");
@@ -101,6 +107,7 @@ void Game::Init()
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
 	SuperParticles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("super-particle"), 500);
 	PassthroughParticles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("passthrough-particle"), 500);
+	BoxParticles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("box-particle"), 500);
 	Effects = new PostProcessor(ResourceManager::GetShader("post_processor"), this->Width, this->Height);
 
 	// Levels
@@ -113,6 +120,9 @@ void Game::Init()
 	Levels.push_back(three);
 	Levels.push_back(four);
 	this->Level = 0;
+
+	// Audio
+	SoundEngine->setSoundVolume(0.1f);
 
 	// Game Objects
 	glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
@@ -318,6 +328,10 @@ void Game::Update(float dt)
 			: (super_sonic ? SuperParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f))
 				: Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)));
 
+		if (boxTimer < 0)
+			boxPosition = glm::vec2(-100.0f, -100.0f);
+		BoxParticles->Update(dt, boxPosition, 2, glm::vec2(25.0f, 20.0f));
+
 		Ball->Move(dt, this->Width);
 		Ball->Stuck ? Ball->Rotation = 0.0f : Ball->Rotation += 20.0f;
 		this->DoCollisions();
@@ -405,6 +419,18 @@ void Game::Render()
 		}
 			
 		Ball->PassThrough ? PassthroughParticles->Draw() : (super_sonic ? SuperParticles->Draw() : Particles->Draw());
+		
+		if (boxDestroyed)
+		{
+			boxTimer = 10;
+			boxDestroyed = false;
+		}
+
+		if (boxTimer >= 0)
+		{
+			BoxParticles->Draw();
+			boxTimer--;
+		}
 
 		Texture2D sonicTexture = ResourceManager::GetTexture("sonic");
 		Texture2D superTexture = ResourceManager::GetTexture("super-sonic");
@@ -416,9 +442,18 @@ void Game::Render()
 
 		if (this->State == GAME_ACTIVE)
 		{
+			if (Ball->Stuck && !Ball->Sticky)
+			{
+				Text->RenderText("Press 'SPACE' to launch Sonic!", 247.5f, 427.5f, 1.0f, glm::vec3(0.0f));
+				Text->RenderText("Press 'SPACE' to launch Sonic!", 250.0f, 430.0f, 1.0f);
+			}
+			
 			std::stringstream ss; ss << this->Lives;
 			Text->RenderText("Lives: " + ss.str(), 2.5f, 2.5f, 1.0f, glm::vec3(0.0f));
 			Text->RenderText("Lives: " + ss.str(), 5.0f, 5.0f, 1.0f);
+			
+			Text->RenderText("'P' to pause", 372.5f, 2.5f, 1.0f, glm::vec3(0.0f));
+			Text->RenderText("'P' to pause", 375.0f, 5.0f, 1.0f);
 			
 			Text->RenderText("'TAB' for help", this->Width - 242.5f, 2.5f, 1.0f, glm::vec3(0.0f));
 			Text->RenderText("'TAB' for help", this->Width - 240.0f, 5.0f, 1.0f);
@@ -485,7 +520,7 @@ void Game::Render()
 		
 			// Sprites
 		Text->RenderText("Sonic : Ball", 395.0f, 475.0f, 0.5f, glm::vec3(1.0f));
-		Text->RenderText("Player : Platform", 710.0f, 475.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Platform : Player", 710.0f, 475.0f, 0.5f, glm::vec3(1.0f));
 
 			// Blocks
 		Text->RenderText("Destructible", 390.0f, 700.0f, 0.5f, glm::vec3(1.0f));
@@ -610,6 +645,8 @@ void Game::DoCollisions()
 				{
 					box.Destroyed = true;
 					this->SpawnPowerUps(box);
+					boxPosition = box.Position;
+					boxDestroyed = true;
 					SoundEngine->play2D("res/audio/effects/collapse.mp3", false);
 				}
 				else
@@ -759,7 +796,7 @@ void Game::SpawnPowerUps(GameObject& block)
 	if (ShouldSpawn(75))
 		this->PowerUps.push_back(PowerUp("increase", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
 
-	if (ShouldSpawn(75))
+	if (ShouldSpawn(15))
 		this->PowerUps.push_back(PowerUp("confuse", glm::vec2(40.0f, 31.0f), glm::vec3(1.0f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
 
 	if (ShouldSpawn(15))
