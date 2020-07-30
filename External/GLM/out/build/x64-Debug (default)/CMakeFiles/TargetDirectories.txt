@@ -1,2 +1,0 @@
-D:/OneDrive - Staffordshire University/GitHub/Games-Engine-Creation/Breakout/External/GLM/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
-D:/OneDrive - Staffordshire University/GitHub/Games-Engine-Creation/Breakout/External/GLM/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
