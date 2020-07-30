@@ -25,6 +25,7 @@ bool paused = false;
 bool pauseKeyPressed = false;
 bool isPlaying = false;
 bool super_sonic = false;
+bool notStarted = true;
 
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height), Level(0), Lives(3)
 {
@@ -127,16 +128,6 @@ void Game::Init()
 
 void Game::ProcessInput(float dt)
 {
-	/*if (this->Keys[GLFW_KEY_P] == GLFW_PRESS && !pauseKeyPressed)
-	{
-		paused = !paused;
-		pauseKeyPressed = true;
-	}
-	if (this->Keys[GLFW_KEY_P] == GLFW_RELEASE)
-	{
-		pauseKeyPressed = false;
-	}*/
-
 	if (this->State == GAME_MENU)
 	{
 		if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER])
@@ -211,7 +202,10 @@ void Game::ProcessInput(float dt)
 			this->KeysProcessed[GLFW_KEY_P] = true;
 			this->State = GAME_PAUSE;
 		}
+	}
 
+	if (this->State == GAME_MENU || this->State == GAME_ACTIVE)
+	{
 		if (this->Keys[GLFW_KEY_TAB] && !this->KeysProcessed[GLFW_KEY_TAB])
 		{
 			SoundEngine->stopAllSounds();
@@ -271,24 +265,33 @@ void Game::ProcessInput(float dt)
 	{
 		if (this->Keys[GLFW_KEY_TAB] && !this->KeysProcessed[GLFW_KEY_TAB])
 		{
-			switch (this->Level)
-			{
-			case 0:
-				SoundEngine->play2D("res/audio/music/green-hill.mp3", true);
-				break;
-			case 1:
-				SoundEngine->play2D("res/audio/music/marble.mp3", true);
-				break;
-			case 2:
-				SoundEngine->play2D("res/audio/music/starlight.mp3", true);
-				break;
-			case 3:
-				SoundEngine->play2D("res/audio/music/final.mp3", true);
-				break;
-			}
 			Effects->Darken = false;
 			this->KeysProcessed[GLFW_KEY_TAB] = true;
-			this->State = GAME_ACTIVE;
+			if (notStarted)
+			{
+				SoundEngine->stopAllSounds();
+				SoundEngine->play2D("res/audio/music/title.mp3", true);
+				this->State = GAME_MENU;
+			}
+			else
+			{
+				this->State = GAME_ACTIVE;
+				switch (this->Level)
+				{
+				case 0:
+					SoundEngine->play2D("res/audio/music/green-hill.mp3", true);
+					break;
+				case 1:
+					SoundEngine->play2D("res/audio/music/marble.mp3", true);
+					break;
+				case 2:
+					SoundEngine->play2D("res/audio/music/starlight.mp3", true);
+					break;
+				case 3:
+					SoundEngine->play2D("res/audio/music/final.mp3", true);
+					break;
+				}
+			}
 		}
 	}
 }
@@ -297,6 +300,7 @@ void Game::Update(float dt)
 {	
 	if (this->State == GAME_MENU)
 	{
+		notStarted = true;
 		if (!isPlaying)
 		{
 			SoundEngine->stopAllSounds();
@@ -308,6 +312,8 @@ void Game::Update(float dt)
 	
 	if (this->State == GAME_ACTIVE)
 	{
+		notStarted = false;
+		
 		Ball->PassThrough ? PassthroughParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f))
 			: (super_sonic ? SuperParticles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f))
 				: Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f)));
@@ -425,6 +431,8 @@ void Game::Render()
 		Text->RenderText("Press ENTER to start!", 320.0f, Height / 2 + 40.0f, 1.0f);
 		Text->RenderText("Press W or S to select level.", 317.5f, Height / 2 + 77.5f, 0.75f, glm::vec3(0.0f));
 		Text->RenderText("Press W or S to select level.", 320.0f, Height / 2 + 80.0f, 0.75f);
+		Text->RenderText("Press TAB for help.", 377.5f, Height / 2 + 117.5f, 0.75f, glm::vec3(0.0f));
+		Text->RenderText("Press TAB for help.", 380.0f, Height / 2 + 120.0f, 0.75f);
 		Texture2D titleTexture = ResourceManager::GetTexture("title");
 		Renderer->DrawSprite(titleTexture, glm::vec2(this->Width / 2 - 256.0f, this->Height / 2 - 300.0f), glm::vec2(512.0f, 300.0f), 0.0f);
 	}
@@ -455,26 +463,91 @@ void Game::Render()
 		// Text
 			// Titles
 		Text->RenderText("HELP MENU", 425.0f, 50.0f, 1.0f, glm::vec3(1.0f));
-		Text->RenderText("Power-Ups", 50.0f, 250.0f, 1.0f, glm::vec3(1.0f));
-		Text->RenderText("Blocks", 50.0f, 600.0f, 1.0f, glm::vec3(1.0f));
-
-			// Blocks
-		Text->RenderText("Destructible", 300.0f, 700.0f, 0.6f, glm::vec3(1.0f));
-		Text->RenderText("Non-destructible", 650.0f, 700.0f, 0.6f, glm::vec3(1.0f));
+		Text->RenderText("Power-Ups", 50.0f, 200.0f, 1.0f, glm::vec3(1.0f));
+		Text->RenderText("Sprites", 50.0f, 425.0f, 1.0f, glm::vec3(1.0f));
+		Text->RenderText("Blocks", 50.0f, 650.0f, 1.0f, glm::vec3(1.0f));
 
 			// Power-Ups
-		Text->RenderText("Speed Increase", 425.0f, 50.0f, 0.5f, glm::vec3(1.0f));
-		Text->RenderText("Ball Passthrough", 425.0f, 50.0f, 0.5f, glm::vec3(1.0f));
-		Text->RenderText("Sticky Paddle", 425.0f, 50.0f, 0.5f, glm::vec3(1.0f));
-		Text->RenderText("Size Increase", 425.0f, 50.0f, 0.5f, glm::vec3(1.0f));
-		Text->RenderText("Confusion", 425.0f, 50.0f, 0.5f, glm::vec3(1.0f));
-		Text->RenderText("Chaos", 425.0f, 50.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Speed", 293.5f, 250.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Increase", 283.0f, 270.0f, 0.5f, glm::vec3(1.0f));
+		
+		Text->RenderText("Ball", 420.0f, 250.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Passthrough", 384.5f, 270.0f, 0.5f, glm::vec3(1.0f));
+		
+		Text->RenderText("Sticky", 533.0f, 250.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Paddle", 530.0f, 270.0f, 0.5f, glm::vec3(1.0f));
+		
+		Text->RenderText("Size ", 663.5f, 250.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Increase", 645.5f, 270.0f, 0.5f, glm::vec3(1.0f));
+
+		Text->RenderText("Confusion", 757.5f, 250.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Chaos", 905.0f, 250.0f, 0.5f, glm::vec3(1.0f));
+		
+			// Sprites
+		Text->RenderText("Sonic : Ball", 395.0f, 475.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Player : Platform", 710.0f, 475.0f, 0.5f, glm::vec3(1.0f));
+
+			// Blocks
+		Text->RenderText("Destructible", 390.0f, 700.0f, 0.5f, glm::vec3(1.0f));
+		Text->RenderText("Non-destructible", 715.0f, 700.0f, 0.5f, glm::vec3(1.0f));
+
+
+		// Powerups
+		Texture2D speedTexture = ResourceManager::GetTexture("powerup_speed");
+		Texture2D passthroughTexture = ResourceManager::GetTexture("powerup_passthrough");
+		Texture2D stickyTexture = ResourceManager::GetTexture("powerup_sticky");
+		Texture2D increaseTexture = ResourceManager::GetTexture("powerup_increase");
+		Texture2D starTexture = ResourceManager::GetTexture("powerup_confuse");
+		Texture2D eggmanTexture = ResourceManager::GetTexture("powerup_chaos");
+		Renderer->DrawSprite(speedTexture, glm::vec2(300.0f, 190.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(passthroughTexture, glm::vec2(420.0f, 190.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(stickyTexture, glm::vec2(540.0f, 190.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(increaseTexture, glm::vec2(660.0f, 190.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(starTexture, glm::vec2(780.0f, 190.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(eggmanTexture, glm::vec2(900.0f, 197.5f), glm::vec2(60.0f, 20.0f), 0.0f, glm::vec3(1.0f));
+		
+		// Sprites
+		Texture2D ballTexture;
+		Texture2D sonicTexture = ResourceManager::GetTexture("sonic");
+		Texture2D superTexture = ResourceManager::GetTexture("super-sonic");
+		int timer = glfwGetTime();
+		switch (timer % 2)
+		{
+		case 0:
+			ballTexture = sonicTexture;
+			break;
+		case 1:
+			ballTexture = superTexture;
+			break;
+		}
+		Renderer->DrawSprite(ballTexture, glm::vec2(415.0f, 400.0f), glm::vec2(50.0f, 50.0f), 0.0f, glm::vec3(1.0f));
+
+		Texture2D playerTexture;
+		Texture2D greenHillPlatform = ResourceManager::GetTexture("green-hill-platform");
+		Texture2D marblePlatform = ResourceManager::GetTexture("marble-platform");
+		Texture2D starlightPlatform = ResourceManager::GetTexture("starlight-platform");
+		Texture2D finalPlatform = ResourceManager::GetTexture("final-platform");
+		switch (timer % 4)
+		{
+		case 0:
+			playerTexture = greenHillPlatform;
+			break;
+		case 1:
+			playerTexture = marblePlatform;
+			break;
+		case 2:
+			playerTexture = starlightPlatform;
+			break;
+		case 3:
+			playerTexture = finalPlatform;
+			break;
+		}
+		Renderer->DrawSprite(playerTexture, glm::vec2(740.0f, 400.0f), glm::vec2(100.0f, 50.0f), 0.0f, glm::vec3(1.0f));
 		
 		// Blocks
-		int colorTimer = glfwGetTime();
 		Texture2D colorTexture;
 		Texture2D metalTexture = ResourceManager::GetTexture("metal");
-		switch (colorTimer % 4)
+		switch (timer % 4)
 		{
 		case 0:
 			colorTexture = ResourceManager::GetTexture("blue");
@@ -489,22 +562,8 @@ void Game::Render()
 			colorTexture = ResourceManager::GetTexture("red");
 			break;
 		}
-		Renderer->DrawSprite(colorTexture, glm::vec2(325.0f, 600.0f), glm::vec2(80.0f, 50.0f), 0.0f, glm::vec3(1.0f));
-		Renderer->DrawSprite(metalTexture, glm::vec2(700.0f, 600.0f), glm::vec2(80.0f, 50.0f), 0.0f, glm::vec3(1.0f));
-		
-		// Powerups
-		Texture2D speedTexture = ResourceManager::GetTexture("powerup_speed");
-		Texture2D passthroughTexture = ResourceManager::GetTexture("powerup_passthrough");
-		Texture2D stickyTexture = ResourceManager::GetTexture("powerup_sticky");
-		Texture2D increaseTexture = ResourceManager::GetTexture("powerup_increase");
-		Texture2D starTexture = ResourceManager::GetTexture("powerup_confuse");
-		Texture2D eggmanTexture = ResourceManager::GetTexture("powerup_chaos");
-		Renderer->DrawSprite(speedTexture, glm::vec2(300.0f, 240.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
-		Renderer->DrawSprite(passthroughTexture, glm::vec2(400.0f, 240.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
-		Renderer->DrawSprite(stickyTexture, glm::vec2(500.0f, 240.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
-		Renderer->DrawSprite(increaseTexture, glm::vec2(600.0f, 240.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
-		Renderer->DrawSprite(starTexture, glm::vec2(700.0f, 240.0f), glm::vec2(40.0f, 31.0f), 0.0f, glm::vec3(1.0f));
-		Renderer->DrawSprite(eggmanTexture, glm::vec2(800.0f, 247.5f), glm::vec2(60.0f, 20.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(colorTexture, glm::vec2(405.0f, 625.0f), glm::vec2(80.0f, 50.0f), 0.0f, glm::vec3(1.0f));
+		Renderer->DrawSprite(metalTexture, glm::vec2(750.0f, 625.0f), glm::vec2(80.0f, 50.0f), 0.0f, glm::vec3(1.0f));
 	}
 }
 
