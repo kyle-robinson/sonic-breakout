@@ -12,7 +12,9 @@
 
 SpriteRenderer* Renderer;
 GameObject* Player;
+GameObject* Player2;
 BallObject* Ball;
+BallObject* Ball2;
 ParticleGenerator* Particles;
 ParticleGenerator* SuperParticles;
 ParticleGenerator* PassthroughParticles;
@@ -31,6 +33,8 @@ bool notStarted = true;
 bool boxDestroyed = false;
 int boxTimer = 10;
 
+bool multiplayer = false;
+
 Game::Game(unsigned int width, unsigned int height) : State(GAME_ACTIVE), Keys(), Width(width), Height(height), Level(0), Lives(3)
 {
 
@@ -40,7 +44,9 @@ Game::~Game()
 {
 	delete Renderer;
 	delete Player;
+	delete Player2;
 	delete Ball;
+	delete Ball2;
 	delete Particles;
 	delete SuperParticles;
 	delete PassthroughParticles;
@@ -127,9 +133,15 @@ void Game::Init()
 	// Game Objects
 	glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
 	Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
+	
+	glm::vec2 playerPos2 = glm::vec2(-500.0f, -500.0f);
+	Player2 = new GameObject(playerPos2, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("sonic"));
+
+	glm::vec2 ballPos2 = playerPos2;
+	Ball2 = new BallObject(ballPos2, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("sonic"));
 
 	// Text
 	Text = new TextRenderer(this->Width, this->Height);
@@ -163,11 +175,13 @@ void Game::ProcessInput(float dt)
 				break;
 			}
 		}
+
 		if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W])
 		{
 			this->Level = (this->Level + 1) % 4;
 			this->KeysProcessed[GLFW_KEY_W] = true;
 		}
+
 		if (this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S])
 		{
 			if (this->Level > 0)
@@ -176,6 +190,18 @@ void Game::ProcessInput(float dt)
 				this->Level = 3;
 			this->KeysProcessed[GLFW_KEY_S] = true;
 		}
+
+		/*if (this->Keys[GLFW_KEY_1] && !this->KeysProcessed[GLFW_KEY_1])
+		{
+			multiplayer = false;
+			this->KeysProcessed[GLFW_KEY_1] = true;
+		}
+
+		if (this->Keys[GLFW_KEY_2] && !this->KeysProcessed[GLFW_KEY_2])
+		{
+			multiplayer = true;
+			this->KeysProcessed[GLFW_KEY_2] = true;
+		}*/
 	}
 
 	if (this->State == GAME_ACTIVE)
@@ -203,6 +229,32 @@ void Game::ProcessInput(float dt)
 		
 		if (this->Keys[GLFW_KEY_SPACE])
 			Ball->Stuck = false;
+
+		if (multiplayer)
+		{
+			if (this->Keys[GLFW_KEY_LEFT])
+			{
+				if (Player2->Position.x >= 0.0f)
+				{
+					Player2->Position.x -= velocity;
+					if (Ball2->Stuck)
+						Ball2->Position.x -= velocity;
+				}
+			}
+
+			if (this->Keys[GLFW_KEY_RIGHT])
+			{
+				if (Player2->Position.x <= this->Width - Player2->Size.x)
+				{
+					Player2->Position.x += velocity;
+					if (Ball2->Stuck)
+						Ball2->Position.x += velocity;
+				}
+			}
+
+			if (this->Keys[GLFW_KEY_END])
+				Ball2->Stuck = false;
+		}
 		
 		if (this->Keys[GLFW_KEY_P] && !this->KeysProcessed[GLFW_KEY_P])
 		{
@@ -318,6 +370,23 @@ void Game::Update(float dt)
 			isPlaying = true;
 		}
 		Effects->Circle = true;
+
+		if (multiplayer)
+		{
+			Player->Position = glm::vec2(this->Width / 2 - 200.0f - PLAYER_SIZE.x / 2.0f, Player->Position.y);
+			Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+
+			Player2->Position = glm::vec2(this->Width / 2 + 200.0f - PLAYER_SIZE.x / 2.0f, Player->Position.y);
+			Ball2->Position = Player2->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+		}
+		else
+		{
+			Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+			Ball->Position = Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+
+			Player2->Position = glm::vec2(-500.0f, -500.0f);
+			Ball2->Position = Player2->Position;
+		}
 	}
 	
 	if (this->State == GAME_ACTIVE)
@@ -411,6 +480,11 @@ void Game::Render()
 		
 		Player->Sprite = playerTexture;
 		Player->Draw(*Renderer);
+		if (multiplayer)
+		{
+			Player2->Sprite = playerTexture;
+			Player2->Draw(*Renderer);
+		}
 
 		if (this->State == GAME_ACTIVE)
 		{
@@ -437,6 +511,11 @@ void Game::Render()
 		Texture2D superTexture = ResourceManager::GetTexture("super-sonic");
 		super_sonic ? Ball->Sprite = superTexture : Ball->Sprite = sonicTexture;
 		Ball->Draw(*Renderer);
+		if (multiplayer)
+		{
+			super_sonic ? Ball2->Sprite = superTexture : Ball2->Sprite = sonicTexture;
+			Ball2->Draw(*Renderer);
+		}
 
 		Effects->EndRender();
 		Effects->Render(glfwGetTime());
