@@ -355,6 +355,7 @@ void Game::Update(float dt)
 				this->ResetLevel();
 				this->State = GAME_LOSE;
 				Effects->Confuse = true;
+				Effects->Circle = true;
 				SoundEngine->stopAllSounds();
 				SoundEngine->play2D("res/audio/effects/game-over.mp3", false);
 				SoundEngine->play2D("res/audio/eggman/laughing-long.mp3", false);

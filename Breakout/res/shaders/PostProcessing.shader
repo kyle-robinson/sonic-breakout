@@ -35,6 +35,13 @@ void main()
 	{
 		TexCoords = texture;
 	}
+
+	if (confuse && circle)
+	{
+		float strength = 0.01;
+		vec2 pos = vec2(1.0 - texture.x + sin(time) * strength, 1.0 - texture.y + cos(time) * strength);
+		TexCoords = pos;
+	}
 	
 	if (shake)
 	{
