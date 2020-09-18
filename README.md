@@ -4,7 +4,7 @@ A modern take on the original 1976 Atari game "Breakout," featuring a Sonic the 
 
 *Click image to view on YouTube*
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=K1eCgV0rLbk" target="_blank">
-        <img src="https://i.imgur.com/Re8SGUs.png" alt="Sonic Breakout Thumbnail" width="800" height="450" border="10" />
+        <img src="https://i.imgur.com/Re8SGUs.png" alt="Sonic Breakout Thumbnail" border="10" />
 </a>
 
 ---
