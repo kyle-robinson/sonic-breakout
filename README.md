@@ -7,6 +7,16 @@ A modern take on the original 1976 Atari game "Breakout," featuring a Sonic the 
         <img src="https://i.imgur.com/Re8SGUs.png" alt="Sonic Breakout Thumbnail" border="10" />
 </a>
 
+## List of Features
+
+- [x] AABB Collisions
+- [x] Particle System
+- [x] Post-Processing
+- [x] Level Maps
+- [x] Sprite Rendering
+- [x] Text Rendering
+- [x] Dynamic Audio
+
 ---
 
 ### Credits
