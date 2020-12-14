@@ -9,7 +9,7 @@ A modern take on the original 1976 Atari game "Breakout," featuring a Sonic the 
 
 ---
 
-Credits:
+### Credits
         
         Source Code:
                     https://learnopengl.com/
