@@ -3,6 +3,7 @@
 A modern take on the original 1976 Atari game "Breakout," featuring a Sonic the Hedgehog theme.
 
 *- Click <a href="https://www.youtube.com/watch?v=K1eCgV0rLbk&t=2s" target="_blank">here</a> to view on YouTube -*
+
 <img src="https://i.imgur.com/Re8SGUs.png" alt="Sonic Breakout Thumbnail" border="10" />
 
 https://user-images.githubusercontent.com/39779606/134824004-da6b10f2-16fb-4d6e-affe-2323fdea3d25.mp4
