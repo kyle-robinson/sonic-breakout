@@ -1,5 +1,11 @@
 # Sonic Breakout
 
+[![MSBuild-Debug](https://github.com/kyle-robinson/sonic-breakout/actions/workflows/msbuild-debug.yml/badge.svg)](https://github.com/kyle-robinson/ray-tracer/actions/workflows/msbuild-debug.yml)
+&nbsp;
+[![MSBuild-Release](https://github.com/kyle-robinson/sonic-breakout/actions/workflows/msbuild-release.yml/badge.svg)](https://github.com/kyle-robinson/ray-tracer/actions/workflows/msbuild-release.yml)
+&nbsp;
+[![CodeQL](https://github.com/kyle-robinson/sonic-breakout/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyle-robinson/ray-tracer/actions/workflows/codeql.yml)
+
 A modern take on the original 1976 Atari game "Breakout," featuring a Sonic the Hedgehog theme.
 
 *- Click <a href="https://www.youtube.com/watch?v=K1eCgV0rLbk&t=2s" target="_blank">here</a> to view on YouTube -*
