@@ -27,12 +27,12 @@ https://user-images.githubusercontent.com/39779606/134824004-da6b10f2-16fb-4d6e-
 Refer to the following information on how to install and use the application.
 
 ### Dependencies
-To use the framework, the following prerequisites must be met.
+To use the application, the following prerequisites must be met.
 * Windows 10+
 * Visual Studio
 * Git Version Control
 
-The framework relies on the following libraries and APIs to function.
+The application relies on the following libraries and APIs to function.
 * OpenGL
 
 ### Installing
